@@ -1,0 +1,69 @@
+\begin{enumerate}
+    \item \textbf{نحوه مدیریت وابستگی‌ها}
+    \begin{itemize}
+    \item \textbf{\lr{Layered Architecture}}:
+    \begin{itemize}
+    \item وابستگی‌ها به صورت بالا به پایین هستند \lr{(Presentation $\rightarrow$ Business $\rightarrow$ Data)}.
+    \item هر لایه فقط لایه زیرین را می‌شناسد.
+    \item جفت‌شدگی نسبتا زیاد است.
+    \item در صورت عدم استفاده از \lr{Dependency Injection}، تغییرات اثر زنجیره‌ای دارند.
+    \end{itemize}
+    
+    \item \textbf{\lr{MVVM}:}
+    \begin{itemize}
+    \item وابستگی‌ها از طریق ViewModel مدیریت می‌شوند.
+    \item View به ViewModel وابسته است و Model مستقل می‌ماند.
+    \item جفت‌شدگی کم \lr{(Loose Coupling)}.
+    \end{itemize}
+    \end{itemize}
+    
+    \item \textbf{قابلیت تست‌پذیری}
+    \begin{itemize}
+    \item \textbf{\lr{Layered Architecture}}:
+    \begin{itemize}
+    \item تست‌پذیری مناسب در لایه Business .
+    \item تست لایه Presentation دشوارتر است.
+    \item نیاز به Mock کردن لایه‌ها.
+    \end{itemize}
+    
+    \item \textbf{\lr{MVVM}:}
+    \begin{itemize}
+    \item تست‌پذیری بسیار بالا.
+    \item امکان تست ViewModel بدون UI .
+    \end{itemize}
+    \end{itemize}
+    
+    \item \textbf{میزان پیچیدگی پیاده‌سازی}
+    \begin{itemize}
+    \item \textbf{\lr{Layered Architecture}}:
+    \begin{itemize}
+    \item ساده و قابل فهم.
+    \item مناسب پروژه‌های کوچک تا متوسط.
+    \item پیاده‌سازی سریع.
+    \end{itemize}
+    
+    \item \textbf{\lr{MVVM}:}
+    \begin{itemize}
+    \item پیچیده‌تر.
+    \item نیازمند مفاهیمی مانند \lr{Data Binding} و \lr{Command Pattern}.
+    \item دارای سربار اولیه بیشتر.
+    \end{itemize}
+    \end{itemize}
+    
+    \item \textbf{انعطاف‌پذیری در تغییرات رابط کاربری}
+    \begin{itemize}
+    \item \textbf{\lr{Layered Architecture}}:
+    \begin{itemize}
+    \item تغییر UI ممکن است روی سایر لایه‌ها اثر بگذارد.
+    \item انعطاف‌پذیری کمتر.
+    \end{itemize}
+    
+    \item \textbf{\lr{MVVM}:}
+    \begin{itemize}
+    \item انعطاف‌پذیری بالا.
+    \item امکان تغییر UI بدون تغییر در Model و ViewModel .
+    \item مناسب برای رابط‌های کاربری پویا.
+    \end{itemize}
+    \end{itemize}
+    
+    \end{enumerate}
