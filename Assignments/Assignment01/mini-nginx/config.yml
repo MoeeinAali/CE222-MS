@@ -1,0 +1,19 @@
+listen-on: 8080
+paths:
+  "/static/":
+    type: servedir
+    target: "./static/"
+  "/go-to-google":
+    type: redirect
+    target: "https://google.com"
+  "/chat/":
+    type: reverseproxy
+    target: "localhost:3000"
+  "/file.pdf":
+    type: staticfile
+    target: "/Users/moeein/Downloads/api-test-V2-1.pdf"
+  "/downloads/":
+    type: servedir
+    target: "/Users/moeein/Downloads/"
+
+

@@ -26,19 +26,27 @@
 
 \subsectionaddtolist{۲. معماری این پروژه به کدام الگو نزدیک‌تر است؟}
 
+این پروژه در لایه \lr{Presentation} بیشترین شباهت را به \lr{MVVM} دارد، اما در سطح کلان‌تر (چیدمان ماژول‌ها و تفکیک لایه‌ها) می‌توان \lr{Clean Architecture} را مشاهده کرد. به بیان دیگر، معماری آن یک \textbf{ترکیب عملی} از چند الگو/راهنمایی رایج در اندروید مدرن است.
+
 \begin{itemize}
   \item \textbf{\lr{MVVM}:}
-  لایه رابط کاربری (View) با \lr{Jetpack Compose} ساخته می‌شود و وضعیت کاربر (State) و منطق نمایش در \lr{ViewModel} نگهداری می‌گردد.
-
-
-  \item \textbf{\lr{Repository Pattern} و نزدیک به \lr{Clean Architecture}:} پروژه بیشتر به MVVM نزدیک است، اما می‌توان Clean هم در آن مشاهده کرد:
   \begin{itemize}
-    \item \textbf{\lr{UI Layer}:} نمایش داده و مدیریت تعاملات.
-    \item \textbf{\lr{Domain Layer}:} استفاده از \lr{UseCase}ها برای منطق تجاری.
-    \item \textbf{\lr{Data Layer}:} مدیریت منابع داده (شبکه/دیتابیس) از طریق \lr{Repository}.
+    \item \textbf{View}: رابط کاربری با \lr{Jetpack Compose} پیاده‌سازی می‌شود و عمدتاً وظیفه آن نمایش داده‌ها و ارسال رویدادهای کاربر است (مانند کلیک، جستجو و ...).
+    \item \textbf{ViewModel}: منطق نمایش و وضعیت صفحه در \lr{ViewModel} نگهداری می‌شود. \lr{ViewModel} داده‌های موردنیاز \lr{UI} را از طریق جریان‌های واکنش‌گرا مانند \lr{Flow}/\lr{StateFlow} منتشر می‌کند و \lr{UI} با مشاهده این stateها به‌صورت خودکار \lr{Recompose} می‌شود.
+    \item \textbf{Model}: مدل‌ها و داده‌ها از طریق \lr{Repository}ها و منابع داده (شبکه، دیتابیس، \lr{DataStore}) تأمین می‌شوند و ViewModel مستقیماً درگیر جزئیات پیاده‌سازی شبکه/ذخیره‌سازی نمی‌شود. این موضوع باعث کاهش وابستگی‌ها و افزایش تست‌پذیری می‌گردد.
   \end{itemize}
+
+  \item \textbf{\lr{Repository Pattern} و نزدیک به \lr{Clean Architecture} (در ساختار کلی سیستم):}
+  \begin{itemize}
+    \item \textbf{\lr{UI Layer}:} شامل ماژول‌های \lr{feature:*} و ماژول‌های UI مشترک (مانند \lr{core:ui} و \lr{core:designsystem}) که نمایش، ناوبری و تعاملات کاربر را مدیریت می‌کنند.
+    \item \textbf{\lr{Domain Layer}:} در برخی بخش‌ها منطق تجاری با \lr{UseCase}ها یا لایه‌های میانی مستقل از UI پیاده می‌شود تا قوانین کسب‌وکار از جزئیات نمایش جدا شوند. 
+    \item \textbf{\lr{Data Layer}:} شامل ماژول‌هایی مانند \lr{core:data}، \lr{core:network}، \lr{core:database} و \lr{core:datastore} که مسئول دریافت، ذخیره و همگام‌سازی داده‌اند. در این لایه، \lr{Repository}ها نقش واسط بین ViewModel/Domain و منابع داده را بازی می‌کنند و تصمیم می‌گیرند داده از کجا (شبکه/کش/دیتابیس) خوانده شود.
+  \end{itemize}
+
 \end{itemize}
 
+\noindent
+در نتیجه، اگر بخواهیم یک جمع‌بندی دقیق ارائه کنیم: {لایه \lr{Presentation} پروژه عمدتاً \lr{MVVM} است}، و در سطح معماری کلان {به \lr{Clean Architecture} نزدیک شده}.
 \subsectionaddtolist{۳. چرا معماری نرم‌افزار به پروژه‌های وب محدود نمی‌شود؟}
 
 معماری نرم‌افزار به وب محدود نیست، چون «معماری» به نوع پلتفرم وابسته نیست؛ بلکه روشی برای {مدیریت پیچیدگی}، {کاهش هزینه تغییرات} و {افزایش کیفیت} در هر سیستم نرم‌افزاری است. هرجا که یک سیستم شامل اجزای متعدد، وابستگی‌های گوناگون و نیاز به توسعه و نگه‌داری بلندمدت داشته باشد، معماری اهمیت پیدا می‌کند. دلایل اصلی عبارت‌اند از:
