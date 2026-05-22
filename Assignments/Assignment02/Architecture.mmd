@@ -1,0 +1,178 @@
+graph TD
+
+%% ═══════════════════════════════════════════
+%% LAYER 4 — Infrastructure
+%% ═══════════════════════════════════════════
+
+subgraph INFRA["Infrastructure / Frameworks & Drivers"]
+  direction TB
+
+  subgraph DB["Data Storage"]
+    PG[("PostgreSQL\nدیتابیس اصلی")]
+    RD[("Redis\nCache / Session")]
+  end
+
+  subgraph EXT["External Services"]
+    CDN["CDN / S3\nویدیو و فایل‌ها"]
+    PAY["Payment Gateway\nStripe / Zarinpal"]
+    MAIL["Email Service\nSendGrid / SMTP"]
+    MQ["Message Queue\nRabbitMQ / Kafka"]
+  end
+
+  subgraph FW["Framework"]
+    WEB["Web Framework\nExpress / FastAPI"]
+    AUTH_P["Auth Provider\nJWT / OAuth2"]
+  end
+end
+
+%% ═══════════════════════════════════════════
+%% LAYER 3 — Interface Adapters
+%% ═══════════════════════════════════════════
+
+subgraph ADAPTER["Interface Adapters"]
+  direction LR
+
+  subgraph IN_ADAPTER["Inbound"]
+    CTRL_E["EnrollmentController"]
+    CTRL_L["LessonController"]
+    CTRL_Q["QuizController"]
+    CTRL_C["CourseController"]
+  end
+
+  subgraph MIDDLE["Middleware"]
+    MW["Auth Guard\nRate Limiter / Logger\nError Handler"]
+  end
+
+  subgraph OUT_ADAPTER["Outbound"]
+    REPO_IMPL["Repository Impls\nORM Adapters"]
+    GW_PAY["PaymentGateway\nImpl"]
+    GW_MAIL["EmailGateway\nImpl"]
+    GW_STORE["StorageGateway\nImpl"]
+    PRESENTER["Presenters\nViewModels"]
+  end
+end
+
+%% ═══════════════════════════════════════════
+%% LAYER 2 — Application
+%% ═══════════════════════════════════════════
+
+subgraph APP["Application Layer — Use Cases"]
+  direction TB
+
+  subgraph UC["Use Cases"]
+    UC_E["EnrollStudent"]
+    UC_P["PlayLesson"]
+    UC_Q["SubmitQuiz"]
+    UC_T["TrackProgress"]
+    UC_C["CreateCourse"]
+  end
+
+  subgraph PORTS["Port Interfaces"]
+    PORT_PAY["IPaymentPort"]
+    PORT_MAIL["IEmailPort"]
+    PORT_STORE["IStoragePort"]
+  end
+
+  subgraph DTO["DTOs"]
+    DTO_E["EnrollmentDTO"]
+    DTO_P["ProgressDTO"]
+    DTO_Q["QuizResultDTO"]
+  end
+end
+
+%% ═══════════════════════════════════════════
+%% LAYER 1 — Domain
+%% ═══════════════════════════════════════════
+
+subgraph DOMAIN["Domain Layer — Entities & Business Rules"]
+  direction LR
+
+  subgraph ENTITIES["Entities"]
+    E_CRS["Course"]
+    E_STU["Student"]
+    E_ENR["Enrollment"]
+    E_LES["Lesson"]
+    E_QUZ["Quiz"]
+    E_PRG["Progress"]
+  end
+
+  subgraph VO["Value Objects"]
+    VO_ID["CourseId"]
+    VO_EM["Email"]
+    VO_SC["Score"]
+  end
+
+  subgraph REPO_IF["Repository Interfaces"]
+    RI_C["ICourseRepository"]
+    RI_E["IEnrollmentRepository"]
+    RI_P["IProgressRepository"]
+  end
+
+  subgraph EVENTS["Domain Events"]
+    EV1["StudentEnrolled"]
+    EV2["LessonCompleted"]
+    EV3["QuizSubmitted"]
+  end
+end
+
+
+%% Infrastructure → Interface Adapters
+PG      -->|"implements"| REPO_IMPL
+RD      -->|"cache"| REPO_IMPL
+PAY     -->|"implements"| GW_PAY
+MAIL    -->|"implements"| GW_MAIL
+CDN     -->|"implements"| GW_STORE
+WEB     -->|"routes to"| MW
+AUTH_P  -->|"verifies"| MW
+MQ      -->|"publishes"| GW_MAIL
+
+%% Interface Adapters → Application
+MW          -->|"passes request"| CTRL_E
+MW          -->|"passes request"| CTRL_L
+MW          -->|"passes request"| CTRL_Q
+MW          -->|"passes request"| CTRL_C
+CTRL_E      -->|"calls"| UC_E
+CTRL_L      -->|"calls"| UC_P
+CTRL_Q      -->|"calls"| UC_Q
+CTRL_C      -->|"calls"| UC_C
+REPO_IMPL   -->|"implements"| RI_C
+REPO_IMPL   -->|"implements"| RI_E
+REPO_IMPL   -->|"implements"| RI_P
+GW_PAY      -->|"implements"| PORT_PAY
+GW_MAIL     -->|"implements"| PORT_MAIL
+GW_STORE    -->|"implements"| PORT_STORE
+UC_E        -->|"returns"| PRESENTER
+UC_P        -->|"returns"| PRESENTER
+
+%% Application → Domain
+UC_E    -->|"creates"| E_ENR
+UC_E    -->|"uses"| PORT_PAY
+UC_E    -->|"emits"| EV1
+UC_P    -->|"reads"| E_LES
+UC_P    -->|"uses"| PORT_STORE
+UC_P    -->|"emits"| EV2
+UC_Q    -->|"reads"| E_QUZ
+UC_Q    -->|"emits"| EV3
+UC_T    -->|"updates"| E_PRG
+UC_C    -->|"creates"| E_CRS
+UC_E    -->|"queries"| RI_E
+UC_C    -->|"queries"| RI_C
+UC_T    -->|"queries"| RI_P
+
+%% ═══════════════════════════════════════════
+%% STYLES
+%% ═══════════════════════════════════════════
+
+classDef domain    fill:#EEEDFE,stroke:#534AB7,color:#3C3489,font-weight:bold
+classDef appUC     fill:#E1F5EE,stroke:#0F6E56,color:#085041,font-weight:bold
+classDef appPort   fill:#9FE1CB,stroke:#0F6E56,color:#04342C
+classDef adapter   fill:#E6F1FB,stroke:#185FA5,color:#0C447C,font-weight:bold
+classDef infra     fill:#F1EFE8,stroke:#5F5E5A,color:#444441
+classDef event     fill:#FAECE7,stroke:#993C1D,color:#712B13
+
+class E_CRS,E_STU,E_ENR,E_LES,E_QUZ,E_PRG,VO_ID,VO_EM,VO_SC,RI_C,RI_E,RI_P domain
+class UC_E,UC_P,UC_Q,UC_T,UC_C,DTO_E,DTO_P,DTO_Q appUC
+class PORT_PAY,PORT_MAIL,PORT_STORE appPort
+class CTRL_E,CTRL_L,CTRL_Q,CTRL_C,MW,REPO_IMPL,GW_PAY,GW_MAIL,GW_STORE,PRESENTER adapter
+class PG,RD,CDN,PAY,MAIL,MQ,WEB,AUTH_P infra
+class EV1,EV2,EV3 event
