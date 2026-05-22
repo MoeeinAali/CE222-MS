@@ -1,0 +1,128 @@
+\subsubsection*{الهام‌گیری Clean Architecture از اصل DIP}
+
+اصل {وارونگی وابستگی} شامل دو بند اساسی است:
+\begin{enumerate}
+    \item ماژول‌های سطح بالا نباید به ماژول‌های سطح پایین وابسته باشند؛ هر دو باید به انتزاع وابسته باشند.
+    \item انتزاع‌ها نباید وابسته به جزئیات باشند، بلکه جزئیات (پیاده‌سازی‌های واقعی) باید وابسته به انتزاع‌ها باشند.
+\end{enumerate}
+
+در \lr{Clean Architecture}، نرم‌افزار به لایه‌های متمرکزی تقسیم می‌شود که هسته مرکزی آن شامل بالاترین سطح از سیاست‌ها و منطق تجاری برنامه (\lr{Domain} و \lr{Use Cases}) است، و لایه‌های بیرونی شامل ابزارها و مکانیزم‌های سطح پایین (\lr{Frameworks, Databases, UI}) هستند. 
+
+قانون طلایی این معماری: جهت وابستگی‌های کدهای منبع همیشه باید رو به داخل و به سمت سیاست‌های سطح بالا باشد.
+
+{تناقض معماری و حل آن به کمک وارونگی}
+در عمل یک تناقض پیش می‌آید: یک \lr{Use Case} سطح بالا (مثلاً \texttt{RegisterUser}) برای انجام کار خود نیاز دارد داده‌ای را ذخیره کند یا ایمیلی بفرستد، که این‌ها عملیاتی سطح پایین و مربوط به ابزارهای بیرونی هستند.
+
+\lr{Clean Architecture} این تناقض را دقیقاً با الهام از \lr{DIP} حل می‌کند:
+به جای اینکه \lr{Use Case} مستقیماً به کدهای دیتابیس وابسته شود، یک اینترفیس در داخل لایه خود تعریف می‌کند. لایه دیتابیس در بیرون، این اینترفیس را پیاده‌سازی می‌کند. در نتیجه، وابستگی زمان کامپایل کاملاً {وارونه} شده و به سمت داخل متمایل می‌شود، در حالی که جریان داده در زمان اجرا به سمت بیرون است.
+
+
+
+
+
+
+
+\subsubsection*{مشکلات ساختاری که با رعایت این اصل حل می‌شوند}
+\begin{itemize}
+    \item \textbf{Coupling شدید:} بدون DIP ، هرگونه تغییر در جزئیات دیتابیس (مثلاً مهاجرت از PostgreSQL به MongoDB ) یا تغییر در ابزارهای بیرونی، منطق اصلی کسب‌وکار را خراب می‌کند. DIP هسته سیستم را از نوسانات زیرساخت ایزوله می‌کند.
+    \item \textbf{تست‌پذیری ضعیف:} وقتی منطق برنامه به سیستم‌های واقعی متصل باشد، نوشتن \lr{Unit Test} سریع غیرممکن است. با وابستگی به انتزاع‌ها، می‌توان در محیط تست به راحتی ساختارهای فرضی را تزریق کرد.
+    \item \textbf{اختلال در توسعه موازی:} تیم توسعه لایه تجاری می‌تواند بدون منتظر ماندن برای نهایی شدن ساختار دیتابیس یا سرویس‌های شبکه، کدهای خود را به طور مستقل بنویسد و تست کند.
+\end{itemize}
+
+\subsubsection*{نحوه متصل شدن دو لایه به یکدیگر در زمان اجرا}
+
+بر اساس قانون وابستگی، لایه‌های درونی هیچ دیدی به لایه‌های بیرونی ندارند. اما در زمان اجرا، جریان کنترل برای دسترسی به دیتابیس باید از لایه تجاری خارج شود. برای حل این تناقض بدون مخدوش شدن مرزهای معماری، از الگوی \lr{Dependency Injection} استفاده می‌شود.
+در این روش، لایه بالا نیازمندی خود را به صورت یک {اینترفیس} اعلام می‌کند. سپس در بیرونی‌ترین نقطه برنامه یعنی \lr{Composition Root} (مانند تابع \texttt{main})، پیاده‌سازی واقعی دیتابیس ساخته شده و به لایه بالا تزریق می‌شود. مراحل کدی این اتصال به شرح زیر است:
+
+\pagebreak
+
+{ تعریف انتزاع و مدل در لایه سطح بالا (\lr{Core})}
+\begin{lstlisting}[language=Go]
+package usecases
+
+// Domain Entity - کاملاً خالص و بدون تگ‌های دیتابیس
+type User struct {
+    ID   string
+    Name string
+}
+
+// UserRepository - قراردادی که لایه بالا تعیین می‌کند
+type UserRepository interface {
+    GetByID(id string) (*User, error)
+}
+\end{lstlisting}
+
+{ پیاده‌سازی مستقل در لایه سطح پایین (\lr{Infrastructure})}
+
+
+\begin{lstlisting}[language=Go]
+package infrastructure
+
+import (
+    "database/sql"
+    "errors"
+    "usecases"
+)
+
+type DBUser struct {
+    ID        string
+    FullName  string
+    CreatedAt string
+}
+
+type SQLUserRepository struct {
+    db *sql.DB
+}
+
+func NewSQLUserRepository(db *sql.DB) *SQLUserRepository {
+    return &SQLUserRepository{db: db}
+}
+
+func (r *SQLUserRepository) GetByID(id string) (*usecases.User, error) {
+    query := "SELECT * FROM users WHERE id = $1;"
+    
+    var dbUser DBUser
+    
+    err := r.db.QueryRow(query, id).Scan(&dbUser.ID, &dbUser.FullName, &dbUser.CreatedAt)
+    if err != nil {
+        if errors.Is(err, sql.ErrNoRows) {
+            return nil, nil
+        }
+        return nil, err
+    }
+    
+    domainUser := &usecases.User{
+        ID:   dbUser.ID,
+        Name: dbUser.FullName,
+    }
+    
+    return domainUser, nil
+}
+\end{lstlisting}
+
+{ تزریق وابستگی در نقطه ورود (\lr{Composition Root})}
+
+\begin{lstlisting}[language=Go]
+package main
+
+import (
+    "database/sql"
+    _ "github.com/lib/pq"
+    "infrastructure"
+    "usecases"
+)
+
+func main() {
+    dbConn, err := sql.Open("postgres", "postgres://user:pass@localhost/db")
+    if err != nil {
+        panic(err)
+    }
+    defer dbConn.Close()
+
+    userRepoImpl := infrastructure.NewSQLUserRepository(dbConn)
+
+    userUseCase := usecases.NewUserUseCase(userRepoImpl)
+
+    user, err := userUseCase.Execute("123")
+}
+\end{lstlisting}
