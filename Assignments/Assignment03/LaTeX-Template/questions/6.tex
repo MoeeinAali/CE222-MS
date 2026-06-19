@@ -138,4 +138,12 @@ return r.db.Transaction(func(tx *gorm.DB) error {
 منبع حقیقت برای نگاشت لینک‌ها و شمارنده‌ی کلیک، \lr{PostgreSQL} با \lr{volume} پایدار است و \lr{Redis} تنها یک \lr{projection} به‌شمار می‌رود. اگر کل \lr{Redis} پاک شود، \lr{projector} هنگام راه‌اندازی با اجرای تابع \lr{Bootstrap} \lr{Model Reader} را به‌طور کامل از روی جدول‌های \lr{links} و \lr{link\_analytics} بازمی‌سازد. این رفتار به‌صورت عملی آزموده شده است: پس از اجرای \lr{FLUSHALL} روی \lr{Redis} و ری‌استارت \lr{projector}، هم نگاشت لینک‌ها و هم شمارنده‌ی کلیک‌ها دقیقا از داده‌های پایدار \lr{PostgreSQL} بازیابی شدند.
 
 \textbf{مفاهیم \lr{DDD} به‌کاررفته:}
-کل سامانه یک \lr{Bounded Context} است و الگوهای تاکتیکی زیر در آن پیاده شده‌اند: \lr{aggregate} غنی \lr{Link} با فیلدهای خصوصی و \lr{invariant} «لینک غیرفعال را نمی‌توان دوباره غیرفعال کرد»؛ \lr{Value Object}های خوداعتبارسنج (\lr{URL}، \lr{ShortCode}، \lr{LinkID} و \lr{LinkStatus})؛ رویدادهای دامنه (\lr{LinkCreated}، \lr{LinkDisabled} و \lr{LinkClicked})؛ و الگوی \lr{Ports \& Adapters} که در آن دامنه هیچ وابستگی‌ای به زیرساخت ندارد (\lr{Persistence Ignorance}).
+کل سامانه یک \lr{Bounded Context} با زبان فراگیر مشترک است و الگوهای تاکتیکی \lr{DDD} به‌صورت زیر در آن پیاده شده‌اند:
+
+\begin{itemize}
+	\item \textbf{\lr{Aggregate Root}:} موجودیت \lr{Link} ریشه‌ی تجمیع و تنها نقطه‌ی تغییر حالت لینک است؛ فیلدهای آن خصوصی‌اند و \lr{invariant} «یک لینک غیرفعال را نمی‌توان دوباره غیرفعال کرد» را خود تضمین می‌کند.
+	\item \textbf{\lr{Value Object}:} مقادیر تغییرناپذیر و خوداعتبارسنج \lr{URL}، \lr{ShortCode}، \lr{LinkID} و \lr{LinkStatus}؛ مثلا \lr{URL} تضمین می‌کند که مقدار همواره یک نشانی معتبر \lr{http(s)} باشد و ورودی نامعتبر در همان مرز ساخت رد شود.
+	\item \textbf{\lr{Domain Event}:} رویدادهای \lr{LinkCreated}، \lr{LinkDisabled} و \lr{LinkClicked} که «آنچه در دامنه رخ داده» را ثبت می‌کنند و مبنای به‌روزرسانی \lr{Model Reader} هستند.
+	\item \textbf{\lr{Repository} (\lr{Port}):} واسط ذخیره‌سازی \lr{aggregate} در لایه‌ی دامنه تعریف می‌شود و پیاده‌سازی‌اش در لایه‌ی زیرساخت قرار دارد (وارونگی وابستگی).
+	\item \textbf{\lr{Ports \& Adapters} و \lr{Persistence Ignorance}:} دامنه هیچ وابستگی‌ای به زیرساخت ندارد؛ جزئیات \lr{GORM} و پایگاه‌داده تنها در لایه‌ی \lr{infrastructure} قرار دارند و از طریق نگاشت به مدل دامنه متصل می‌شوند.
+\end{itemize}
