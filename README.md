@@ -1,5 +1,5 @@
-# CE242-SS
-Solutions to Dr. Manzuri's CE242:  Signals and Systems  (Sharif University of Technology, Spring 2026) Assignments
+# CE222-MS
+Solutions to Dr. Abrishami's CE222:  Microservice Systems  (Sharif University of Technology, Spring 2026) Assignments
 
 ## Table of Contents
 
