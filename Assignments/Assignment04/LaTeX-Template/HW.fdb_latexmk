@@ -1,6 +1,6 @@
 # Fdb version 4
-["pdflatex"] 1784206677.92835 "/Users/moeein/Documents/SUT-Courses/CE222-MS/Assignments/Assignment04/LaTeX-Template/HW.tex" "HW.pdf" "HW" 1784206678.30689 2
-  "/Users/moeein/Documents/SUT-Courses/CE222-MS/Assignments/Assignment04/LaTeX-Template/HW.tex" 1784203019.19444 1900 0830655f8ffefb0aacec57d1f66a2023 ""
+["pdflatex"] 1784827145.4386 "/Users/moeein/Documents/SUT-Courses/CE222-MS/Assignments/Assignment04/LaTeX-Template/HW.tex" "HW.pdf" "HW" 1784827145.76462 2
+  "/Users/moeein/Documents/SUT-Courses/CE222-MS/Assignments/Assignment04/LaTeX-Template/HW.tex" 1784649740.62553 1959 e022a4564d9c49570e09fadcf8d2de82 ""
   "/usr/local/texlive/2025/texmf-dist/tex/generic/atbegshi/atbegshi.sty" 1575674566 24708 5584a51a7101caf7e6bbf1fc27d8f7b1 ""
   "/usr/local/texlive/2025/texmf-dist/tex/generic/bigintcalc/bigintcalc.sty" 1576625341 40635 c40361e206be584d448876bba8a64a3b ""
   "/usr/local/texlive/2025/texmf-dist/tex/generic/bitset/bitset.sty" 1576016050 33961 6b5c75130e435b2bfdb9f480a09a39f9 ""
@@ -112,7 +112,7 @@
   "/usr/local/texlive/2025/texmf-var/web2c/pdftex/pdflatex.fmt" 1741450574 3345740 46b66fdb0378f7bf5921b5eabf1762b8 ""
   "/usr/local/texlive/2025/texmf.cnf" 1741450484 577 418a7058ec8e006d8704f60ecd22c938 ""
   "HW.aux" 0 -1 0 "pdflatex"
-  "HW.tex" 1784203019.19444 1900 0830655f8ffefb0aacec57d1f66a2023 ""
+  "HW.tex" 1784649740.62553 1959 e022a4564d9c49570e09fadcf8d2de82 ""
   "commons/course.sty" 1784199025.43317 8133 b88810ad3223b80bdd142b7524c0e9d5 ""
   (generated)
   "HW.aux"
