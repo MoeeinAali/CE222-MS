@@ -4,20 +4,20 @@
 ایده‌ی اصلی \lr{Clean Architecture}: (۱) قوانین کسب‌وکار باید از جزئیات فناوری جدا باشند، و (۲) جهت وابستگی‌ها فقط رو به داخل، یعنی به‌سمت \lr{Entities} و \lr{Use Cases} است. هیچ کلاسی در لایه‌های داخلی حق ندارد به یک کتابخانه یا فریمورک خارجی اشاره کند.
 
 \begin{itemize}
-    \item \textbf{لایه‌ی \lr{Entities (Domain)}:} موجودیت \lr{Message}، \lr{Value Object}ای به نام \lr{QueueStatus}، \lr{port}های \lr{Queue}، \lr{QueueManager}، \lr{QueueFactory} و \lr{Logger}، و مجموعه‌ای از خطاهای کسب‌وکار به‌صورت \lr{sentinel error} (\lr{ErrQueueFull}، \lr{ErrQueueEmpty}، \lr{ErrQueueNotFound}، \lr{ErrQueueAlreadyExists}، ...). این لایه \emph{هیچ} \lr{import} خارجی ندارد.
-    \item \textbf{لایه‌ی \lr{UseCases}:} کلاس \lr{QueueUseCase} منطق برنامه را مدیریت می‌کند و دو \lr{port} خروجی به نام‌های \lr{IDGenerator} و \lr{Clock} تعریف می‌کند تا حتی به \lr{uuid} یا \lr{time.Now} \emph{مستقیم} وابسته نباشد. این لایه از طریق \lr{port} ورودی \lr{QueueService} توسط لایه‌ی \lr{Delivery} مصرف می‌شود.
-    \item \textbf{لایه‌ی \lr{Interface Adapters} - بخش \lr{Repository}:} پیاده‌سازی \lr{in-memory} صف به‌صورت \lr{Ring Buffer} (\lr{RingBufferQueue}) و یک \lr{QueueManager} امن از نظر هم‌زمانی (با \lr{RWMutex}). \lr{QueueManager} از طریق یک \lr{QueueFactory} تزریق‌شده، نوع صف زیرین را نمی‌داند؛ یعنی می‌توان بعدا \lr{Redis-backed Queue} اضافه کرد بدون اینکه این کلاس تغییر کند.
-    \item \textbf{لایه‌ی \lr{Interface Adapters} - بخش \lr{Delivery}:} \lr{HTTP} \lr{handler}های مبتنی بر \lr{Gin}، \lr{DTO}ها، یک \lr{router} مستقل، و یک تابع متمرکز \lr{writeDomainError} که خطاهای دامنه را به کد وضعیت \lr{HTTP} نگاشت می‌کند. تمام این لایه تنها به \lr{interface} \lr{usecase.QueueService} وابسته است، نه به نوع concrete .
-    \item \textbf{لایه‌ی \lr{Service}:} \lr{TTLCleaner} که با یک \lr{ticker} و \lr{context.Context} پیام‌های منقضی را پاکسازی می‌کند و قابلیت \lr{graceful shutdown} دارد. این \lr{worker} فقط به پورت‌های \lr{QueueManager} و \lr{Logger} وابسته است.
-    \item \textbf{لایه‌ی \lr{Frameworks \& Drivers}:} \lr{idgen.UUID}، \lr{clock.Real}، \lr{logger.Zap} و خود \lr{Gin}. این‌ها فقط در \lr{Composition Root} (یعنی \lr{cmd/server/main.go}) به لایه‌های داخلی تزریق می‌شوند.
+    \item {لایه‌ی \lr{Entities (Domain)}:} موجودیت \lr{Message}، \lr{Value Object}ای به نام \lr{QueueStatus}، \lr{port}های \lr{Queue}، \lr{QueueManager}، \lr{QueueFactory} و \lr{Logger}، و مجموعه‌ای از خطاهای کسب‌وکار به‌صورت \lr{sentinel error} (\lr{ErrQueueFull}، \lr{ErrQueueEmpty}، \lr{ErrQueueNotFound}، \lr{ErrQueueAlreadyExists}، ...). این لایه \emph{هیچ} \lr{import} خارجی ندارد.
+    \item {لایه‌ی \lr{UseCases}:} کلاس \lr{QueueUseCase} منطق برنامه را مدیریت می‌کند و دو \lr{port} خروجی به نام‌های \lr{IDGenerator} و \lr{Clock} تعریف می‌کند تا حتی به \lr{uuid} یا \lr{time.Now} \emph{مستقیم} وابسته نباشد. این لایه از طریق \lr{port} ورودی \lr{QueueService} توسط لایه‌ی \lr{Delivery} مصرف می‌شود.
+    \item {لایه‌ی \lr{Interface Adapters} - بخش \lr{Repository}:} پیاده‌سازی \lr{in-memory} صف به‌صورت \lr{Ring Buffer} (\lr{RingBufferQueue}) و یک \lr{QueueManager} امن از نظر هم‌زمانی (با \lr{RWMutex}). \lr{QueueManager} از طریق یک \lr{QueueFactory} تزریق‌شده، نوع صف زیرین را نمی‌داند؛ یعنی می‌توان بعدا \lr{Redis-backed Queue} اضافه کرد بدون اینکه این کلاس تغییر کند.
+    \item {لایه‌ی \lr{Interface Adapters} - بخش \lr{Delivery}:} \lr{HTTP} \lr{handler}های مبتنی بر \lr{Gin}، \lr{DTO}ها، یک \lr{router} مستقل، و یک تابع متمرکز \lr{writeDomainError} که خطاهای دامنه را به کد وضعیت \lr{HTTP} نگاشت می‌کند. تمام این لایه تنها به \lr{interface} \lr{usecase.QueueService} وابسته است، نه به نوع concrete .
+    \item {لایه‌ی \lr{Service}:} \lr{TTLCleaner} که با یک \lr{ticker} و \lr{context.Context} پیام‌های منقضی را پاکسازی می‌کند و قابلیت \lr{graceful shutdown} دارد. این \lr{worker} فقط به پورت‌های \lr{QueueManager} و \lr{Logger} وابسته است.
+    \item {لایه‌ی \lr{Frameworks \& Drivers}:} \lr{idgen.UUID}، \lr{clock.Real}، \lr{logger.Zap} و خود \lr{Gin}. این‌ها فقط در \lr{Composition Root} (یعنی \lr{cmd/server/main.go}) به لایه‌های داخلی تزریق می‌شوند.
 \end{itemize}
 
-\textbf{رعایت اصل \lr{DIP}:} لایه‌ی \lr{UseCase} \lr{port} موردنیاز خود را \emph{خودش} تعریف می‌کند (\lr{IDGenerator}, \lr{Clock}) و لایه‌ی بیرونی موظف است آن را پیاده کند. 
+{رعایت اصل \lr{DIP}:} لایه‌ی \lr{UseCase} \lr{port} موردنیاز خود را \emph{خودش} تعریف می‌کند (\lr{IDGenerator}, \lr{Clock}) و لایه‌ی بیرونی موظف است آن را پیاده کند. 
 
 نتیجه: تعویض \lr{uuid} با هر تولیدکننده‌ی \lr{ID} دیگر، یا تعویض \lr{Gin} با \lr{Echo/Fiber/gRPC}، تنها یک \lr{adapter} جدید می‌خواهد و دست‌کاری در منطق کسب‌وکار لازم نیست.
 
 
-\textbf{نکات کلیدی پیاده‌سازی:}
+{نکات کلیدی پیاده‌سازی:}
 \begin{itemize}
     \item پیاده‌سازی صف به‌صورت \lr{Ring Buffer} با پیچیدگی $O(1)$ برای \lr{push} و \lr{pop} و بدون \lr{allocation} اضافه به ازای هر پیام.
     \item انقضای پیام به دو شیوه‌ی موازی: (۱) \lr{Lazy} هنگام \lr{Pop}: پیام‌های منقضی‌شده در ابتدای صف رد می‌شوند، (۲) \lr{Proactive} از طریق \lr{TTLCleaner} که هر یک ثانیه یک‌بار اجرا می‌شود تا حتی پیام‌هایی که هرگز \lr{pop} نمی‌شوند نیز حافظه را نگه ندارند.
@@ -26,7 +26,7 @@
     \item \lr{Composition Root} در \lr{cmd/server/main.go} سیگنال‌های \lr{SIGINT/SIGTERM} را با \lr{signal.NotifyContext} می‌گیرد، سپس \lr{TTLCleaner} و \lr{http.Server} را با مهلت ۵ ثانیه‌ای \lr{Shutdown} می‌کند.
 \end{itemize}
 
-\textbf{مسیرهای \lr{HTTP} پیاده‌سازی‌شده:}
+{مسیرهای \lr{HTTP} پیاده‌سازی‌شده:}
 
 \begin{latin}
 \begin{verbatim}
@@ -39,7 +39,7 @@ POST   /queues/:queue/pop      # dequeue; 204 if empty
 \end{verbatim}
 \end{latin}
 
-\textbf{کتاب‌خانه‌ها و دلیل انتخاب آن‌ها:}
+{کتاب‌خانه‌ها و دلیل انتخاب آن‌ها:}
 \begin{itemize}
     \item \lr{github.com/gin-gonic/gin}: \lr{HTTP router} سبک با \lr{middleware} منعطف. فقط در لایه‌ی \lr{delivery} استفاده می‌شود.
     \item \lr{github.com/google/uuid}: تولید \lr{UUID v4} برای شناسه‌ی صف‌ها و پیام‌ها. در پشت \lr{port} \lr{IDGenerator} ایزوله شده.
@@ -48,7 +48,7 @@ POST   /queues/:queue/pop      # dequeue; 204 if empty
 
 % ----------------------------------------------------------------------
 
-\textbf{اجرای پروژه:}
+{اجرای پروژه:}
 \begin{latin}
 \begin{verbatim}
 cd Baby-Rabbit
@@ -57,9 +57,9 @@ go run ./cmd/server          # server listens on :8080
 \end{latin}
 
 
-\textbf{تست با \lr{Postman}:} فایل \lr{Baby-Rabbit.postman\_collection.json} شامل تمام \lr{request}ها به‌همراه \lr{test script}های \lr{JavaScript} است که به‌صورت خودکار شناسه‌ی صف ساخته‌شده را در \lr{collection variable} ذخیره می‌کند. کافی است \lr{collection} را \lr{import} کنید و درخواست‌ها را به ترتیب اجرا کنید.
+{تست با \lr{Postman}:} فایل \lr{Baby-Rabbit.postman\_collection.json} شامل تمام \lr{request}ها به‌همراه \lr{test script}های \lr{JavaScript} است که به‌صورت خودکار شناسه‌ی صف ساخته‌شده را در \lr{collection variable} ذخیره می‌کند. کافی است \lr{collection} را \lr{import} کنید و درخواست‌ها را به ترتیب اجرا کنید.
 
-\textbf{اعتبارسنجی قاعده‌ی وابستگی:} می‌توان به‌صورت تجربی نشان داد که هیچ‌یک از لایه‌های داخلی به فریمورک‌های بیرونی وابسته نیستند:
+{اعتبارسنجی قاعده‌ی وابستگی:} می‌توان به‌صورت تجربی نشان داد که هیچ‌یک از لایه‌های داخلی به فریمورک‌های بیرونی وابسته نیستند:
 
 \begin{latin}
 \begin{verbatim}
@@ -92,14 +92,14 @@ go list -f '{{join .Imports "\n"}}' ./internal/service
     \item \lr{Frameworks \& Drivers} $\Leftrightarrow$ \lr{gin}، \lr{uuid}، \lr{zap}، \lr{net/http} که فقط در لایه‌ی بیرونی و در \lr{Composition Root} ظاهر می‌شوند.
 \end{itemize}
 
-\textbf{قاعده‌ی وابستگی برقرار است:} هیچ فایلی در \lr{domain} و \lr{usecase} از پکیج‌های \lr{gin}، \lr{uuid} یا \lr{zap} \lr{import} نمی‌کند و این موضوع را با \lr{go list -deps} می‌توان به‌صورت آبجکتیو تأیید کرد.
+{قاعده‌ی وابستگی برقرار است:} هیچ فایلی در \lr{domain} و \lr{usecase} از پکیج‌های \lr{gin}، \lr{uuid} یا \lr{zap} \lr{import} نمی‌کند و این موضوع را با \lr{go list -deps} می‌توان به‌صورت آبجکتیو تأیید کرد.
 
-\textbf{نزدیک‌ترین الگو:} از منظر الگوها، معماری نهایی به \lr{Hexagonal Architecture} (که با نام \lr{Ports \& Adapters} نیز شناخته می‌شود) بسیار نزدیک است. دلیل این نزدیکی روشن است: \lr{port}های ورودی (\lr{QueueService}) و \lr{port}های خروجی (\lr{IDGenerator}، \lr{Clock}، \lr{QueueManager}، \lr{Queue}، \lr{QueueFactory}، \lr{Logger}) به‌صورت صریح در پکیج‌های داخلی تعریف شده‌اند و هر \lr{adapter} (\lr{Gin HTTP}، \lr{Ring Buffer}، \lr{UUID}، \lr{System Clock}، \lr{Zap}) دقیقاً روی لبه‌ی شش‌ضلعی قرار دارد. در عمل، \lr{Clean Architecture} و \lr{Hexagonal} در همین پروژه به یک‌جا می‌رسند: تفاوت آن‌ها بیشتر در ادبیات (\lr{layers} در برابر \lr{hexagon}) است تا در ساختار نهایی کد. اگر بخواهیم دقیق‌تر بگوییم، چون ما در پایین مرز شش‌ضلعی هیچ \lr{driving adapter}ای (مثل \lr{CLI} یا \lr{message consumer}) نداشتیم و تنها یک \lr{HTTP adapter} ورودی داریم، حالت ساده‌شده‌ی \lr{Hexagonal} است.
+{نزدیک‌ترین الگو:} از منظر الگوها، معماری نهایی به \lr{Hexagonal Architecture} (که با نام \lr{Ports \& Adapters} نیز شناخته می‌شود) بسیار نزدیک است. دلیل این نزدیکی روشن است: \lr{port}های ورودی (\lr{QueueService}) و \lr{port}های خروجی (\lr{IDGenerator}، \lr{Clock}، \lr{QueueManager}، \lr{Queue}، \lr{QueueFactory}، \lr{Logger}) به‌صورت صریح در پکیج‌های داخلی تعریف شده‌اند و هر \lr{adapter} (\lr{Gin HTTP}، \lr{Ring Buffer}، \lr{UUID}، \lr{System Clock}، \lr{Zap}) دقیقا روی لبه‌ی شش‌ضلعی قرار دارد. در عمل، \lr{Clean Architecture} و \lr{Hexagonal} در همین پروژه به یک‌جا می‌رسند: تفاوت آن‌ها بیشتر در ادبیات (\lr{layers} در برابر \lr{hexagon}) است تا در ساختار نهایی کد. اگر بخواهیم دقیق‌تر بگوییم، چون ما در پایین مرز شش‌ضلعی هیچ \lr{driving adapter}ای (مثل \lr{CLI} یا \lr{message consumer}) نداشتیم و تنها یک \lr{HTTP adapter} ورودی داریم، حالت ساده‌شده‌ی \lr{Hexagonal} است.
 
-\textbf{مزایای ملموسی که این طراحی به ما داد:}
+{مزایای ملموسی که این طراحی به ما داد:}
 \begin{itemize}
-    \item جایگزینی فناوری در لایه‌ی بیرونی (مثلاً مهاجرت از \lr{Gin} به \lr{Echo} یا حتی به \lr{gRPC}) تنها همان لایه را دست‌خوش تغییر می‌کند.
-    \item جایگزینی \lr{Ring Buffer} با هر \lr{backing store} دیگری (مثلاً \lr{Redis} یا \lr{BadgerDB}) فقط یک \lr{QueueFactory} تازه می‌خواهد و یک خط در \lr{main.go}. لایه‌های \lr{usecase} و \lr{domain} دست‌نخورده می‌مانند.
+    \item جایگزینی فناوری در لایه‌ی بیرونی (مثلا مهاجرت از \lr{Gin} به \lr{Echo} یا حتی به \lr{gRPC}) تنها همان لایه را دست‌خوش تغییر می‌کند.
+    \item جایگزینی \lr{Ring Buffer} با هر \lr{backing store} دیگری (مثلا \lr{Redis} یا \lr{BadgerDB}) فقط یک \lr{QueueFactory} تازه می‌خواهد و یک خط در \lr{main.go}. لایه‌های \lr{usecase} و \lr{domain} دست‌نخورده می‌مانند.
     \item جایگزینی \lr{zap} با \lr{slog} یا \lr{logr} فقط یک \lr{adapter} تازه برای \lr{domain.Logger} می‌خواهد.
     \item منطق برنامه بدون نیاز به \lr{HTTP server}، \lr{uuid} یا \lr{wall clock} قابل تست است و این موضوع در پوشش تست‌های واحد منعکس شده است.
 \end{itemize}

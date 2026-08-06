@@ -25,7 +25,7 @@
     \centering
     \begin{tabular}{rl}
     \hline
-    \textbf{مسئولیت} & \textbf{\lr{Use Case}} \\
+    {مسئولیت} & {\lr{Use Case}} \\
     \hline
     اعتبارسنجی ثبت‌نام، پردازش پرداخت، ایجاد Enrollment & \lr{EnrollStudent} \\
     بررسی دسترسی، تولید URL امن محتوا، ثبت شروع مشاهده & \lr{PlayLesson} \\
@@ -44,11 +44,11 @@
 داده را بین دنیای خارج و لایه‌ی Application تبدیل می‌کند.
 
 \begin{itemize}
-  \item \textbf{\lr{Controllers}}: \lr{HTTP request} را دریافت، اعتبارسنجی، و به \lr{DTO} تبدیل می‌کنند
-  \item \textbf{\lr{Presenters}}: خروجی \lr{use case} را به فرمت \lr{JSON} مناسب برای کلاینت تبدیل می‌کنند
-  \item \textbf{\lr{Repository Implementations}}: پیاده‌سازی واقعی \lr{interface} های \lr{Domain} با استفاده از \lr{ORM}
-  \item \textbf{\lr{External Gateways}}: پیاده‌سازی \lr{Port Interface} ها 
-  \item \textbf{\lr{Middleware}}: \lr{Auth Guard}، \lr{Rate Limiter}، \lr{Logger}، \lr{Error Handler}
+  \item {\lr{Controllers}}: \lr{HTTP request} را دریافت، اعتبارسنجی، و به \lr{DTO} تبدیل می‌کنند
+  \item {\lr{Presenters}}: خروجی \lr{use case} را به فرمت \lr{JSON} مناسب برای کلاینت تبدیل می‌کنند
+  \item {\lr{Repository Implementations}}: پیاده‌سازی واقعی \lr{interface} های \lr{Domain} با استفاده از \lr{ORM}
+  \item {\lr{External Gateways}}: پیاده‌سازی \lr{Port Interface} ها 
+  \item {\lr{Middleware}}: \lr{Auth Guard}، \lr{Rate Limiter}، \lr{Logger}، \lr{Error Handler}
 \end{itemize}
 
 \subsubsection*{لایه Infrastructure — Frameworks \& Drivers}
@@ -59,7 +59,7 @@
 \centering
 \begin{tabular}{rrl}
 \hline
-\textbf{بخش} & \textbf{توضیح} & \textbf{فناوری} \\
+{بخش} & {توضیح} & {فناوری} \\
 \hline
 دیتابیس اصلی & ذخیره‌سازی دوره‌ها و ثبت‌نام‌ها & \lr{PostgreSQL} \\
 Cache & کش query ها و session کاربران & \lr{Redis} \\
@@ -79,7 +79,7 @@ Message Queue & رویدادهای async & \lr{RabbitMQ / Kafka} \\
     \centering
     \begin{tabular}{rl}
     \hline
-    \textbf{مسئولیت} & \textbf{ماژول} \\
+    {مسئولیت} & {ماژول} \\
     \hline
     ایجاد، ویرایش، و انتشار دوره‌ها توسط مدرس & \lr{Course Management} \\
     ثبت‌نام دانش‌آموز، پرداخت، مدیریت دسترسی & \lr{Enrollment} \\

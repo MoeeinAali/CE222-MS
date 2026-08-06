@@ -1,7 +1,7 @@
 \begin{enumerate}
-    \item \textbf{نحوه مدیریت وابستگی‌ها}
+    \item {نحوه مدیریت وابستگی‌ها}
     \begin{itemize}
-    \item \textbf{\lr{Layered Architecture}}:
+    \item {\lr{Layered Architecture}}:
     \begin{itemize}
     \item وابستگی‌ها به صورت بالا به پایین هستند \lr{(Presentation $\rightarrow$ Business $\rightarrow$ Data)}.
     \item هر لایه فقط لایه زیرین را می‌شناسد.
@@ -9,7 +9,7 @@
     \item در صورت عدم استفاده از \lr{Dependency Injection}، تغییرات اثر زنجیره‌ای دارند.
     \end{itemize}
     
-    \item \textbf{\lr{MVVM}:}
+    \item {\lr{MVVM}:}
     \begin{itemize}
     \item وابستگی‌ها از طریق ViewModel مدیریت می‌شوند.
     \item View به ViewModel وابسته است و Model مستقل می‌ماند.
@@ -17,32 +17,32 @@
     \end{itemize}
     \end{itemize}
     
-    \item \textbf{قابلیت تست‌پذیری}
+    \item {قابلیت تست‌پذیری}
     \begin{itemize}
-    \item \textbf{\lr{Layered Architecture}}:
+    \item {\lr{Layered Architecture}}:
     \begin{itemize}
     \item تست‌پذیری مناسب در لایه Business . البته در صورتی که DI به درستی استفاده شده باشد.
     \item تست لایه Presentation دشوارتر است.
     \item نیاز به Mock کردن لایه‌ها.
     \end{itemize}
     
-    \item \textbf{\lr{MVVM}:}
+    \item {\lr{MVVM}:}
     \begin{itemize}
     \item تست‌پذیری بسیار بالا.
     \item امکان تست ViewModel بدون UI .
     \end{itemize}
     \end{itemize}
     
-    \item \textbf{میزان پیچیدگی پیاده‌سازی}
+    \item {میزان پیچیدگی پیاده‌سازی}
     \begin{itemize}
-    \item \textbf{\lr{Layered Architecture}}:
+    \item {\lr{Layered Architecture}}:
     \begin{itemize}
     \item ساده و قابل فهم.
     \item مناسب پروژه‌های کوچک تا متوسط.
     \item پیاده‌سازی سریع.
     \end{itemize}
     
-    \item \textbf{\lr{MVVM}:}
+    \item {\lr{MVVM}:}
     \begin{itemize}
     \item پیچیده‌تر.
     \item نیازمند مفاهیمی مانند \lr{Data Binding} و \lr{Command Pattern}.
@@ -50,15 +50,15 @@
     \end{itemize}
     \end{itemize}
     
-    \item \textbf{انعطاف‌پذیری در تغییرات رابط کاربری}
+    \item {انعطاف‌پذیری در تغییرات رابط کاربری}
     \begin{itemize}
-    \item \textbf{\lr{Layered Architecture}}:
+    \item {\lr{Layered Architecture}}:
     \begin{itemize}
     \item تغییر UI ممکن است روی سایر لایه‌ها اثر بگذارد.
     \item انعطاف‌پذیری کمتر.
     \end{itemize}
     
-    \item \textbf{\lr{MVVM}:}
+    \item {\lr{MVVM}:}
     \begin{itemize}
     \item انعطاف‌پذیری بالا.
     \item امکان تغییر UI بدون تغییر در Model و ViewModel .
