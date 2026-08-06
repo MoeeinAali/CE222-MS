@@ -1,4 +1,4 @@
-کد این بخش در \lr{solutions/Q5-react-optimize/} قرار دارد. پروژه یک برنامه‌ی \lr{React 18} با \lr{TypeScript} و \lr{Vite} است (داشبورد وضعیت سرویس‌ها) و طبق صورت سؤال {هیچ خطی از کد برنامه تغییر نکرده}؛ تنها فایل‌های مرتبط با داکر اضافه یا اصلاح شده‌اند.
+پروژه یک برنامه‌ی \lr{React 18} با \lr{TypeScript} و \lr{Vite} است (داشبورد وضعیت سرویس‌ها) و طبق صورت سؤال {هیچ خطی از کد برنامه تغییر نکرده}؛ تنها فایل‌های مرتبط با داکر اضافه یا اصلاح شده‌اند.
 
 \begin{figure}[H]
 \centering
@@ -6,7 +6,7 @@
 \caption{برنامه‌ای که داکرایز شده است، در حال سرو شدن از ایمیج بهینه‌شده روی \lr{nginx}.}
 \end{figure}
 
-\subsectionaddtolist{الف) مشکلات \lr{Dockerfile} اولیه}
+\subsubsection*{مشکلات \lr{Dockerfile} اولیه}
 
 \begin{lstlisting}[language=Docker]
 FROM node:latest
@@ -26,16 +26,15 @@ CMD ["npm", "start"]
 	\item برنامه با کاربر \lr{root} و از طریق سرور توسعه‌ای \lr{vite preview} سرو می‌شود، نه یک وب‌سرور واقعی.
 \end{itemize}
 
-\subsectionaddtolist{ب) نسخه‌ی بهینه‌شده}
+\subsubsection*{نسخه‌ی بهینه‌شده}
 
 \begin{lstlisting}[language=Docker]
-# syntax=docker/dockerfile:1.7
 ARG NODE_VERSION=22.12.0
 ARG NGINX_VERSION=1.27
 
 FROM node:${NODE_VERSION}-alpine AS deps
 WORKDIR /app
-COPY package.json package-lock.json ./
+COPY package*.json ./
 RUN --mount=type=cache,target=/root/.npm \
     npm ci --no-audit --no-fund
 
@@ -54,7 +53,7 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 CMD ["nginx", "-g", "daemon off;"]
 \end{lstlisting}
 
-\subsectionaddtolist{ج) مقایسه‌ی حجم و سرعت}
+\subsubsection*{مقایسه‌ی حجم و سرعت}
 
 \begin{center}
 \begin{tabular}{|l|r|r|r|}
@@ -82,20 +81,22 @@ CMD ["nginx", "-g", "daemon off;"]
 \caption{بیلد مجدد پس از تغییر یک خط در \lr{src/App.tsx}: در نسخه‌ی اولیه \lr{npm install} دوباره اجرا می‌شود، در نسخه‌ی بهینه لایه‌ی وابستگی‌ها \lr{CACHED} می‌ماند.}
 \end{figure}
 
-\subsectionaddtolist{د) توضیح تغییراتی که باعث بهینه‌سازی شدند}
+\subsubsection*{توضیح تغییراتی که باعث بهینه‌سازی شدند}
 
 \begin{enumerate}
 	\item {بیلد چندمرحله‌ای}: بزرگ‌ترین عامل کاهش حجم. \lr{Node}، \lr{npm} و \lr{node\_modules} فقط در مراحل \lr{deps} و \lr{build} می‌مانند و به ایمیج نهایی راه پیدا نمی‌کنند؛ آنچه منتقل می‌شود تنها \lr{dist/} است (حدود ۱۵۰ کیلوبایت).
 	\item {تعویض پایه‌ی زمان اجرا}: \lr{nginx:1.27-alpine} به‌جای \lr{node:latest}؛ برای فایل ایستا به \lr{Node} نیازی نیست و \lr{nginx} هم سریع‌تر و هم امن‌تر سرو می‌کند.
 	\item {تگ‌های پین‌شده}: نتیجه‌ی بیلد امروز و سه ماه بعد یکی است.
-	\item {ترتیب لایه‌ها}: \lr{package.json} و \lr{package-lock.json} جدا و {قبل} از سورس کپی می‌شوند؛ تا وقتی \lr{lockfile} عوض نشود، لایه‌ی نصب از کش می‌آید. این تنها دلیل کاهش ۱۲٫۷ ثانیه به ۱٫۹ ثانیه است.
+	\item {ترتیب لایه‌ها}: \lr{package.json} و \lr{package-lock.json} جدا و {قبل} از سورس کپی می‌شوند؛ تا وقتی \lr{lockfile} عوض نشود، لایه‌ی نصب از کش می‌آید. این تنها دلیل کاهش \lr{12.7} ثانیه به \lr{1.9} ثانیه است.
 	\item {\lr{npm ci} + \lr{cache mount}}: \lr{npm ci} دقیقا از \lr{lockfile} نصب می‌کند و \lr{--mount=type=cache} کش \lr{npm} را بین بیلدها نگه می‌دارد بدون اینکه داخل لایه‌ای ذخیره شود.
 	\item {\lr{.dockerignore}}: \lr{node\_modules}، \lr{dist} و \lr{.git} از \lr{context} حذف شدند؛ هم ارسال \lr{context} سبک شد و هم باینری‌های میزبان به ایمیج نشت نمی‌کنند.
 	\item {پیکربندی سرو}: \lr{gzip}، هدر \lr{Cache-Control: immutable} برای مسیر \lr{/assets/} (چون \lr{Vite} نام فایل‌ها را هش‌دار می‌سازد)، \lr{no-cache} برای \lr{index.html} و \lr{try\_files ... /index.html} برای مسیریابی سمت کلاینت. اندازه‌ی باندل اصلی از \lr{145 KB} به \lr{55 KB} روی شبکه کاهش یافت.
 	\item {سخت‌سازی}: \lr{HEALTHCHECK}، فایل‌سیستم فقط‌خواندنی و \lr{no-new-privileges} در کامپوز.
 \end{enumerate}
 
-\subsectionaddtolist{ه) \lr{docker-compose.yml} و \lr{nginx.conf}}
+\pagebreak
+
+\subsubsection*{\lr{docker-compose.yml} و \lr{nginx.conf}}
 
 \begin{lstlisting}[language=Yaml]
 services:
@@ -114,7 +115,7 @@ services:
       interval: 10s
       timeout: 3s
       retries: 5
-    read_only: true            # nginx only needs writable temp dirs
+    read_only: true
     tmpfs:
       - /var/cache/nginx
       - /var/run
@@ -132,18 +133,14 @@ server {
     gzip on;  gzip_vary on;  gzip_min_length 1024;
     gzip_types text/css text/plain application/javascript application/json image/svg+xml;
 
-    # vite emits content-hashed file names -> safe to cache forever
     location /assets/ {
         expires    1y;
         add_header Cache-Control "public, immutable";
         try_files  $uri =404;
     }
 
-    # the entry document must never be cached, otherwise clients keep
-    # pointing at deleted asset hashes after a deploy
     location = /index.html { add_header Cache-Control "no-cache"; }
 
-    # single page app: unknown paths are handled by the client router
     location / { try_files $uri $uri/ /index.html; }
 }
 \end{lstlisting}
