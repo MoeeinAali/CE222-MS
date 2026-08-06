@@ -1,0 +1,116 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage{tocloft}
+\usepackage{commons/course}  % همین کافیه؛ listings و xcolor داخلشه
+\usepackage{longtable}
+\usepackage{array}
+
+% Define colors for syntax highlighting
+\definecolor{keywordstyle}{rgb}{0.0, 0.4, 0.8} % A bluer shade
+\definecolor{stringstyle}{rgb}{0.9, 0.17, 0.31} % amaranth
+\definecolor{commentstyle}{rgb}{0.1, 0.6, 0.2} % green
+\definecolor{numberstyle}{rgb}{0.4, 0.4, 0.4} % gray
+\definecolor{backgroundcolor}{rgb}{0.94, 0.97, 1.0} % aliceblue
+
+% Dockerfile
+\lstdefinelanguage{Docker}{
+	morekeywords={FROM,AS,RUN,CMD,LABEL,MAINTAINER,EXPOSE,ENV,ADD,COPY,ENTRYPOINT,
+		VOLUME,USER,WORKDIR,ARG,ONBUILD,STOPSIGNAL,HEALTHCHECK,SHELL},
+	sensitive=true,
+	morecomment=[l]{\#},
+	morestring=[b]",
+}
+
+% YAML / docker-compose
+\lstdefinelanguage{Yaml}{
+	morekeywords={services,image,build,context,dockerfile,args,container_name,restart,
+		ports,volumes,networks,environment,env_file,depends_on,condition,healthcheck,
+		command,driver,internal,test,interval,timeout,retries,start_period,target,name,
+		read_only,tmpfs,security_opt,ulimits,true,false,null},
+	sensitive=true,
+	morecomment=[l]{\#},
+	morestring=[b]",
+	morestring=[b]',
+}
+
+% nginx
+\lstdefinelanguage{Nginx}{
+	morekeywords={server,location,upstream,http,events,listen,server_name,root,index,
+		proxy_pass,proxy_set_header,proxy_http_version,include,return,try_files,gzip,
+		expires,add_header,access_log,error_log,worker_processes,worker_connections,
+		resolver,keepalive,log_format,sendfile,default_type},
+	sensitive=true,
+	morecomment=[l]{\#},
+	morestring=[b]",
+}
+
+% Global listing appearance (set language per block, not here)
+\lstset{
+	basicstyle=\ttfamily\small,
+	keywordstyle=\color{keywordstyle},
+	stringstyle=\color{stringstyle},
+	commentstyle=\color{commentstyle},
+	numbers=left,
+	numberstyle=\tiny\color{numberstyle},
+	stepnumber=1,
+	numbersep=5pt,
+	keepspaces=true,
+	tabsize=4,
+	showspaces=false,
+	showstringspaces=false,
+	showtabs=false,
+	breaklines=true,
+	breakatwhitespace=false,
+	frame=single,
+	backgroundcolor=\color{backgroundcolor},
+}
+
+\newlistof{listofproblems}{lop}{\normalsize فهرست مسائل}
+\newcommand{\addproblem}[1]{\addcontentsline{lop}{listofproblems}{\protect\numberline{}#1}}
+
+
+\begin{document}
+
+
+\سربرگ{تمرین پنجم}{}{پاسخ‌دهنده: معین آعلی - 401105561}{استاد: دکتر علی ابریشمی - سیدحسین میرحسینی}
+
+
+\listoflistofproblems
+
+\bigskip
+\bigskip
+\hrule
+
+
+  \مسئله{تعریف مفاهیم}
+  \input{questions/1.tex}
+  \pagebreak
+
+  \مسئله{طراحی پایپلاین}
+  \input{questions/2.tex}
+  \pagebreak
+
+  \مسئله{خرس}
+  \input{questions/3.tex}
+  \pagebreak
+
+  \مسئله{داکرایز}
+  \input{questions/4.tex}
+  \pagebreak
+
+%   \مسئله{تغییر}
+%   \input{questions/5.tex}
+%   \pagebreak
+
+%   \مسئله{کامپوز}
+%   \input{questions/6.tex}
+%   \pagebreak
+
+%   \مسئله{پایپلاین‌طور}
+%   \input{questions/7.tex}
+%   \pagebreak
+
+%   \مسئله{نکسوس}
+%   \input{questions/8.tex}
+%   \pagebreak
+
+\end{document}

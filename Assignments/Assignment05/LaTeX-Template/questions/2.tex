@@ -1,0 +1,130 @@
+در پروژه‌هایی که سرویس‌های مختلف شامل \lr{Frontend}، \lr{Backend} و تغییرات پایگاه داده در یک مخزن گیت مشترک نگهداری می‌شوند، طراحی پایپلاین \lr{CI/CD} نیازمند جداسازی هوشمند مراحل، اجرای موازی برای بهینه‌سازی زمان، و ایجاد شرط‌های عبور محکم جهت کاهش ریسک استقرار است.
+
+
+پایپلاین پیشنهادی شامل ۶ مرحله اصلی به ترتیب زیر است:
+
+\begin{enumerate}[label=\arabic*.]
+
+    \item {\lr{Lint} و تحلیل ایستا}
+    \begin{itemize}
+        \item {مراحل اجرا:}
+        \begin{itemize}
+            \item اجرای لینترهای اختصاصی برای هر بخش (مانند \lr{ESLint} برای \lr{Frontend} و \lr{golangci-lint} یا \lr{Flake8} برای \lr{Backend}).
+            \item بررسی کیفیت کد، قالب‌بندی، خطاهای نحوی و صحت نگارش \lr{Database Migration}ها.
+        \end{itemize}
+
+        \item {شرط عبور:}
+        عدم وجود خطای \lr{Syntax} یا شکست در قوانین تعریف‌شده (میزان \lr{Warnings} قابل تنظیم است).
+
+        \item {خروجی:}
+        گزارش \lr{Lint} و تحلیل کیفیت کد.
+    \end{itemize}
+
+    \item {تست}
+    \begin{itemize}
+        \item {مراحل اجرا:}
+        \begin{itemize}
+            \item اجرای موازی \lr{Unit Tests} برای \lr{Frontend} و \lr{Backend}.
+            \item اجرای \lr{Integration Tests} با استفاده از یک پایگاه داده ایزوله.
+            \item بررسی صحت اجرای \lr{Database Migration}ها و ارتباط صحیح \lr{Backend} با پایگاه داده.
+        \end{itemize}
+
+        \item {شرط عبور:}
+        موفقیت تمامی تست‌های واحد و یکپارچه‌سازی و دستیابی به حداقل پوشش کد تعیین‌شده.
+
+        \item {خروجی:}
+        گزارش نتایج تست‌ها و گزارش پوشش کد.
+    \end{itemize}
+
+    \item {ساخت و انتشار ایمیج}
+    \begin{itemize}
+        \item {مراحل اجرا:}
+        \begin{itemize}
+            \item کامپایل پروژه‌ها و ساخت ایمیج‌های داکر برای \lr{Frontend} و \lr{Backend}.
+            \item برچسب‌گذاری ایمیج‌ها بر اساس \lr{Commit SHA} و نسخه.
+            \item اسکن امنیتی ایمیج‌ها برای شناسایی آسیب‌پذیری‌ها.
+            \item \lr{Push} ایمیج‌ها به \lr{Container Registry}.
+        \end{itemize}
+
+        \item {شرط عبور:}
+        ساخت موفق ایمیج‌ها و عدم وجود آسیب‌پذیری بحرانی در اسکن امنیتی.
+
+        \item {خروجی:}
+        ایمیج‌های داکر آماده استقرار در \lr{Registry}.
+    \end{itemize}
+
+    \item {استقرار در محیط آزمایشی}
+    \begin{itemize}
+        \item {مراحل اجرا:}
+        \begin{itemize}
+            \item اجرای خودکار \lr{Database Migration} روی محیط \lr{Staging}.
+            \item به‌روزرسانی سرویس‌های \lr{Frontend} و \lr{Backend}.
+            \item اجرای \lr{Smoke Test} و تست‌های \lr{End-to-End}.
+        \end{itemize}
+
+        \item {شرط عبور:}
+        استقرار موفق بدون \lr{Downtime} و موفقیت کامل تست‌های دود.
+
+        \item {خروجی:}
+        محیط \lr{Staging} به‌روز و آماده ارزیابی نهایی.
+    \end{itemize}
+
+    \item {تأیید دستی}
+    \begin{itemize}
+        \item {مراحل اجرا:}
+        \begin{itemize}
+            \item بررسی نتایج تست‌ها، گزارش‌های امنیتی و وضعیت محیط \lr{Staging}.
+            \item تأیید انتشار توسط مسئول پروژه یا تیم عملیات.
+        \end{itemize}
+
+        \item {شرط عبور:}
+        دریافت تأییدیه انتشار.
+
+        \item {خروجی:}
+        مجوز آغاز استقرار در محیط عملیاتی.
+    \end{itemize}
+
+    \item {استقرار در محیط عملیاتی}
+    \begin{itemize}
+        \item {مراحل اجرا:}
+        \begin{itemize}
+            \item اجرای \lr{Database Migration}های سازگار با نسخه‌های قبلی.
+            \item استقرار تدریجی با استفاده از \lr{Blue-Green Deployment} یا \lr{Canary Deployment}.
+            \item بررسی \lr{Health Check}ها و مانیتورینگ سرویس پس از انتشار.
+            \item امکان بازگشت سریع در صورت مشاهده خطا.
+        \end{itemize}
+
+        \item {شرط عبور:}
+        سلامت کامل سرویس پس از استقرار و موفقیت تمامی \lr{Health Check}ها.
+
+        \item {خروجی:}
+        نسخه جدید روی محیط عملیاتی به همراه مانیتورینگ و قابلیت بازگشت سریع.
+    \end{itemize}
+
+\end{enumerate}
+
+
+تأیید دستی در دو نقطه کلیدی اضافه می‌شود:
+\begin{enumerate}
+    \item {پیش از استقرار در محیط \lr{Production}:} 
+    \begin{itemize}
+        \item {دلیل:} جلوگیری از انتشار ناخواسته کد به محیط اصلی، هماهنگی زمان انتشار با تیم‌های مارکتینگ/پشتیبانی، و انجام بررسی‌های نهایی توسط مدیر محصول یا لید فنی روی محیط \lr{Staging}.
+    \end{itemize}
+    \item {پیش از اجرای \lr{Migration}های حساس روی دیتابیس \lr{Production}:}
+    \begin{itemize}
+        \item {دلیل:} اسکریپت‌های تغییر ساختار دیتابیس ممکن است زمان‌بر یا سنگین باشند؛ لذا نیاز به بررسی و تأیید \lr{DBA} یا ارشد تیم جهت جلوگیری از قفل شدن جدول‌ها دارد.
+    \end{itemize}
+\end{enumerate}
+
+برای مدیریت ریسک و بازگشت سریع به حالت پایدار در صورت بروز خطا:
+
+\begin{enumerate}
+    \item {بازگشت اپلیکیشن:}
+    از آنجا که تمام ایمیج‌ها بر اساس \lr{Commit SHA} تگ خورده‌اند، در صورت شناسایی خطای بحرانی در \lr{Production}، پایپلاین می‌تواند با یک کلیک یا به‌صورت خودکار، ترافیک را به تگ ایمیج نسخه قبلی هدایت کند.
+    
+    \item {بازگشت پایگاه داده:}
+    \begin{itemize}
+        \item اسکریپت‌های \lr{Migration} باید همواره دارای متد \lr{Down} باشند.
+        \item تمام تغییرات دیتابیس باید بر اساس اصل \lr{Expand and Contract} طراحی شوند تا نسخه جدید کدهای \lr{Backend} با ساختار قبلی و نسخه جدید دیتابیس به‌طور هم‌زمان سازگار باشند.
+    \end{itemize}
+\end{enumerate}

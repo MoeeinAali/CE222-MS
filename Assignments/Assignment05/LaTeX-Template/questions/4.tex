@@ -1,0 +1,170 @@
+\subsubsection*{مراحل داکرایز کردن}
+
+\subsubsection*{مرحله اول: \lr{Builder Stage}}
+
+\begin{itemize}
+    \item \textbf{\lr{FROM python:3.10-slim AS builder}:}
+    ایجاد یک مرحلهٔ مستقل با نام \lr{builder} برای ایزوله کردن فرایند ساخت و کامپایل وابستگی‌ها.
+
+    \item \textbf{\lr{ENV PYTHONDONTWRITEBYTECODE=1}:}
+    جلوگیری از تولید فایل‌های \lr{.pyc}.
+
+    \item \textbf{\lr{ENV PYTHONUNBUFFERED=1}:}
+    ارسال مستقیم خروجی‌های \lr{stdout} و \lr{stderr} به لاگ‌های داکر بدون \lr{buffer} شدن.
+
+    \item \textbf{\lr{ARG MIRROR\_URL=""}:}
+    تعریف یک متغیر مخصوص زمان \lr{build} برای تغییر منبع دانلود بسته‌ها.
+
+    \item \textbf{\lr{RUN --mount=type=cache,target=/root/.cache/pip}:}
+    استفاده از قابلیت \lr{BuildKit Cache Mount} برای کش کردن بسته‌های دانلودشده توسط \lr{pip} و کاهش زمان بیلدهای بعدی.
+
+    \item \textbf{\lr{--prefix=/install}:}
+    نصب وابستگی‌ها در مسیر ایزولهٔ \lr{/install} تا بتوان آن‌ها را به مرحلهٔ نهایی منتقل کرد.
+\end{itemize}
+
+\subsubsection*{مرحله دوم: \lr{Runner Stage (Final Image)}}
+
+\begin{itemize}
+    \item \textbf{\lr{FROM python:3.10-slim AS runner}:}
+    شروع یک مرحلهٔ جدید و سبک بدون ابزارها و کش‌های مرحلهٔ ساخت.
+
+    \item \textbf{\lr{PATH} و \lr{PYTHONPATH}:}
+    افزودن مسیر بسته‌های نصب‌شده به متغیرهای محیطی.
+
+    \item \textbf{\lr{RUN addgroup ... \&\& adduser ...}:}
+    ایجاد یک کاربر \lr{Non\mbox{-}root} برای افزایش امنیت و جلوگیری از حملات \lr{Container Breakout}.
+
+    \item \textbf{\lr{COPY --from=builder /install /install}:}
+    انتقال وابستگی‌های نصب‌شده بدون انتقال ابزارهای مرحلهٔ ساخت.
+
+    \item \textbf{\lr{RUN chown -R appuser:appgroup /app}:}
+    واگذاری مالکیت فایل‌های پروژه به کاربر غیرریشه.
+
+    \item \textbf{\lr{USER appuser}:}
+    اجرای برنامه با کاربر غیرریشه.
+\end{itemize}
+
+\subsubsection*{نحوهٔ Build و اجرا}
+
+ساخت ایمیج با فعال بودن \lr{BuildKit}:
+
+\begin{latin}
+\begin{lstlisting}[language=bash]
+DOCKER_BUILDKIT=1 docker build \
+  --build-arg MIRROR_URL=https://pypi.tuna.tsinghua.edu.cn/simple \
+  -t my-python-app:v1 .
+\end{lstlisting}
+\end{latin}
+
+اجرای کانتینر:
+
+\begin{latin}
+\begin{lstlisting}[language=bash]
+docker run --rm my-python-app:v1
+\end{lstlisting}
+\end{latin}
+
+\subsubsection*{نقش کلیدواژه‌ها}
+
+\begin{description}
+    \item[\lr{ENV}]
+    متغیر محیطی تعریف می‌کند که هم در زمان \lr{build} و هم در زمان اجرای کانتینر در دسترس است و در \lr{metadata} ایمیج ذخیره می‌شود. بنابراین محل مناسبی برای نگهداری اطلاعات محرمانه نیست.
+
+    \item[\lr{WORKDIR}]
+    پوشهٔ کاری دستورات بعدی مانند \lr{RUN}، \lr{COPY} و \lr{CMD} را تعیین می‌کند و در صورت نیاز آن را ایجاد می‌کند.
+
+    \item[\lr{AS}]
+    به یک مرحلهٔ ساخت نام می‌دهد تا بتوان از آن در دستورهایی مانند \lr{COPY --from} یا \lr{--target} استفاده کرد.
+\end{description}
+
+\subsubsection*{\lr{ADD} در برابر \lr{COPY}}
+
+هر دو فایل‌ها را از \lr{build context} به داخل ایمیج منتقل می‌کنند، اما \lr{ADD} دو قابلیت اضافه دارد:
+
+\begin{itemize}
+    \item استخراج خودکار آرشیوهای محلی؛
+    \item دانلود فایل از یک \lr{URL} (و در نسخه‌های جدید \lr{BuildKit}، کلون کردن مخزن گیت).
+\end{itemize}
+
+به همین دلیل معمولاً استفاده از \lr{COPY} توصیه می‌شود و فقط در صورت نیاز به استخراج خودکار آرشیو از \lr{ADD} استفاده می‌شود.
+
+\subsubsection*{\lr{EXPOSE} در برابر \lr{Port\mbox{-}Mapping}}
+
+\lr{EXPOSE 8000} فقط اعلام می‌کند که برنامه روی این پورت گوش می‌دهد و هیچ پورتی را منتشر نمی‌کند.
+
+در مقابل، \lr{docker run -p 8000:8000} یا کلید \lr{ports} در \lr{Docker Compose} باعث ایجاد نگاشت واقعی پورت روی میزبان می‌شود.
+
+\subsubsection*{\lr{ARG} در برابر \lr{ENV}}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{|p{4cm}|p{4.5cm}|p{5cm}|}
+\hline
+ & \centering\lr{ARG} & \centering\arraybackslash\lr{ENV} \\
+\hline
+دامنهٔ حیات & فقط زمان \lr{build} & زمان \lr{build} و زمان اجرا \\
+\hline
+تعیین مقدار & \lr{--build-arg} & \lr{-e}، \lr{env\_file} یا مقدار پیش‌فرض \\
+\hline
+حضور در ایمیج نهایی & خیر (اما در \lr{docker history}) & بله، در \lr{metadata} \\
+\hline
+دیده شدن در برنامه & خیر & بله \\
+\hline
+دامنهٔ اثر & فقط همان مرحله & به مراحل بعدی ارث می‌رسد \\
+\hline
+\end{tabular}
+\end{center}
+
+البته که هیچ‌کدام برای نگهداری \lr{secret} مناسب نیستند.
+
+\subsubsection*{\lr{CMD} در برابر \lr{ENTRYPOINT}}
+
+\lr{ENTRYPOINT} مشخص می‌کند کانتینر چه فرایندی را اجرا می‌کند و معمولاً ثابت در نظر گرفته می‌شود؛ \lr{CMD} آرگومان‌های پیش‌فرضی است که به آن فرایند داده می‌شود و کاربر می‌تواند هنگام \lr{docker run} آن را بازنویسی کند. وقتی هر دو با هم بیایند، دستور نهایی از الحاق این دو ساخته می‌شود:
+
+\begin{latin}
+\begin{lstlisting}[language=Docker]
+ENTRYPOINT ["uvicorn"]
+CMD ["app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+\end{lstlisting}
+\end{latin}
+
+\begin{itemize}
+    \item \lr{docker run img}
+    $\leftarrow$
+    \lr{uvicorn app.main:app --host 0.0.0.0 --port 8000}
+    (چیزی داده نشده، پس \lr{CMD} پیش‌فرض به \lr{ENTRYPOINT} الحاق می‌شود.)
+
+    \item \lr{docker run img --version}
+    $\leftarrow$
+    \lr{uvicorn --version}
+    (آرگومان داده‌شده فقط جای \lr{CMD} را می‌گیرد، \lr{ENTRYPOINT} ثابت می‌ماند.)
+
+    \item تغییر خود \lr{ENTRYPOINT} فقط با فلگ
+    \lr{docker run --entrypoint ...}
+    امکان‌پذیر است.
+\end{itemize}
+
+اگر فقط \lr{CMD} تعریف شود (بدون \lr{ENTRYPOINT})، هر آرگومانی که در \lr{docker run} داده شود کل دستور را جایگزین می‌کند؛ این رفتار برای ایمیج‌های چندمنظوره مناسب است، ولی برای یک سرویس مشخص، ترکیب \lr{ENTRYPOINT} به‌همراه \lr{CMD} رفتاری ثابت‌تر و قابل‌پیش‌بینی‌تر می‌دهد.
+
+نکتهٔ مهم دیگر این‌که هر دو باید به‌صورت \lr{exec} (آرایهٔ \lr{JSON}، مانند مثال بالا) نوشته شوند، نه به‌صورت \lr{shell}. در قالب \lr{shell} (مثلاً \lr{CMD python main.py})، فرایند اصلی برنامه زیرِ \lr{/bin/sh} اجرا می‌شود و خودش \lr{PID 1} نیست؛ در نتیجه سیگنال \lr{SIGTERM} که \lr{docker stop} می‌فرستد به آن نمی‌رسد و کانتینر به‌جای خاموشی تمیز، تا رسیدن \lr{timeout} معطل می‌ماند و سپس با \lr{SIGKILL} بسته می‌شود.
+
+\subsubsection*{ساخت و اجرای کانتینر از روی \lr{Dockerfile}}
+
+\begin{latin}
+\begin{lstlisting}[language=bash]
+# build
+docker build -t my-python-app:v1 .
+
+# run
+docker run --rm my-python-app:v1
+
+# verify
+docker run --rm my-python-app:v1 whoami
+
+# check size and layers
+docker image inspect my-python-app:v1 --format '{{.Size}}'
+docker history my-python-app:v1
+\end{lstlisting}
+\end{latin}
+
+از آن‌جا که این برنامه یک اسکریپت یک‌بارمصرف است، نه یک سرویس شنونده روی پورت، نیازی به \lr{-p}، \lr{EXPOSE} یا \lr{docker compose} ندارد؛ کانتینر پس از اجرای \lr{main.py} و چاپ خروجی به‌صورت خودکار خاتمه می‌یابد و به‌لطف \lr{--rm} حذف هم می‌شود.
