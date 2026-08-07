@@ -1,15 +1,4 @@
-کد این بخش در \lr{solutions/Q6-compose/} قرار دارد.
-
-\subsectionaddtolist{الف) معماری}
-
-\begin{lstlisting}[language={},basicstyle=\ttfamily\footnotesize,numbers=none]
-host :8080 --> app (composeprac) --edge-net--> nginx --helper-net--> helper
-                     \-----------redis-net--> redis
-\end{lstlisting}
-
 سه شبکه‌ی مجزا تعریف شده است. برنامه‌ی جاوا فقط در \lr{edge-net} و \lr{redis-net} است و \lr{helper} فقط در \lr{helper-net}؛ بنابراین این دو {هیچ شبکه‌ی مشترکی ندارند} و تنها مسیر ممکن از جاوا به \lr{helper}، عبور از \lr{nginx} است که تنها عضو مشترک \lr{edge-net} و \lr{helper-net} است. این‌گونه شرط انجینکس حتما باید بین برنامه‌ی جاوا و آن سرویس باشد با {توپولوژی} تضمین می‌شود، نه با قرارداد.
-
-\subsectionaddtolist{ب) رعایت محدودیت‌های صورت سؤال}
 
 \begin{center}
 \begin{tabular}{|l|l|}
@@ -20,14 +9,14 @@ host :8080 --> app (composeprac) --edge-net--> nginx --helper-net--> helper
 \hline
 کلمه‌ی \lr{environment} استفاده نشود & متغیرها از طریق \lr{env\_file} تزریق می‌شوند \\
 \hline
-\lr{nginx} بین جاوا و سرویس کمکی & جداسازی شبکه‌ها (بند الف) \\
+\lr{nginx} بین جاوا و سرویس کمکی & جداسازی شبکه‌ها \\
 \hline
 نیاز به \lr{Redis} در زمان بالا آمدن & \lr{depends\_on} با شرط \lr{service\_healthy} \\
 \hline
 \end{tabular}
 \end{center}
 
-\subsectionaddtolist{ج) \lr{docker-compose.yaml}}
+\lr{docker-compose.yaml}:
 
 \begin{lstlisting}[language=Yaml]
 name: ${COMPOSE_PROJECT_NAME:-ms-hw5-compose}
@@ -96,7 +85,7 @@ STUDENTID=401105561                REDIS_HOST=redis
 HELPER_BASE_URL=http://nginx:80    REDIS_PORT=6379
 \end{lstlisting}
 
-\subsectionaddtolist{د) \lr{nginx.conf}}
+ \lr{nginx.conf}:
 
 \begin{lstlisting}[language=Nginx]
 worker_processes auto;
@@ -138,15 +127,15 @@ http {
 }
 \end{lstlisting}
 
-سرویس کمکی هم با یک \lr{Dockerfile} کوچک روی \lr{python:3.12-alpine} با کاربر بدون امتیاز بسته‌بندی شده است؛ \lr{EXPOSE 9090} در آن فقط مستندسازی است و هیچ پورتی روی میزبان باز نمی‌کند.
+سرویس کمکی هم با یک \lr{Dockerfile} کوچک روی \lr{python:3.12-alpine} که \lr{EXPOSE 9090} در آن فقط مستندسازی است و هیچ پورتی روی میزبان باز نمی‌کند.
 
-\subsectionaddtolist{ه) اجرا و دو خط لاگ}
+ اجرا و دو خط لاگ:
 
 \begin{lstlisting}[language=bash]
-docker build -t composeprac ../../compose-challenge
+docker build -t composeprac compose-challenge
 docker compose up -d
 curl -s -X POST http://localhost:8080/call-me
-docker compose logs app --no-log-prefix
+docker compose logs app
 \end{lstlisting}
 
 \begin{figure}[H]
@@ -162,7 +151,7 @@ HELLO, Moeein!
 FLAG={W3lcome_T0_the_P1@ygr0unD}
 \end{lstlisting}
 
-برای اینکه نشان دهیم \lr{nginx} واقعا در مسیر است (و نه صرفا کنار آن)، از یک کانتینر روی \lr{edge-net} — همان شبکه‌ای که برنامه‌ی جاوا در آن است — یک‌بار مستقیم به \lr{helper} و یک‌بار از طریق \lr{nginx} درخواست زده شد:
+برای اینکه نشان دهیم \lr{nginx} واقعا در مسیر است (و نه صرفا کنار آن)، از یک کانتینر روی \lr{edge-net}  یک‌بار مستقیم به \lr{helper} و یک‌بار از طریق \lr{nginx} درخواست زده شد:
 
 \begin{figure}[H]
 \centering
@@ -170,30 +159,30 @@ FLAG={W3lcome_T0_the_P1@ygr0unD}
 \caption{از شبکه‌ی برنامه‌ی جاوا، نام \lr{helper} اصلا قابل \lr{resolve} نیست؛ اما همان درخواست از مسیر \lr{nginx} پاسخ می‌گیرد و در \lr{access log} انجینکس ثبت می‌شود.}
 \end{figure}
 
-\subsectionaddtolist{و) استفاده‌ی داکر کامپوز از فایل‌های \lr{env}}
+\subsubsection*{استفاده‌ی داکر کامپوز از فایل‌های \lr{env}}
 
 کامپوز دو سازوکار کاملا متفاوت دارد که اغلب با هم اشتباه گرفته می‌شوند:
 
-{۱. فایل \lr{.env} کنار \lr{docker-compose.yaml} (\lr{interpolation}).} این فایل به‌صورت خودکار خوانده می‌شود و مقادیرش {درون خود فایل کامپوز} جای‌گذاری می‌شود؛ یعنی روی نام ایمیج، شماره‌ی پورت، نام پروژه و هر جای دیگری که \lr{\$\{VAR\}} نوشته شده اثر می‌گذارد. این متغیرها به‌خودی‌خود وارد کانتینر {نمی‌شوند}. در این تمرین \lr{.env} شامل \lr{APP\_IMAGE}، \lr{APP\_PORT}، \lr{REDIS\_IMAGE} و \lr{NGINX\_IMAGE} است.
+{۱. فایل \lr{.env} کنار \lr{docker-compose.yaml}.} این فایل به‌صورت خودکار خوانده می‌شود و مقادیرش {درون خود فایل کامپوز} جای‌گذاری می‌شود؛ یعنی روی نام ایمیج، شماره‌ی پورت، نام پروژه و هر جای دیگری که \lr{\$\{VAR\}} نوشته شده اثر می‌گذارد. این متغیرها به‌خودی‌خود وارد کانتینر {نمی‌شوند}. در این تمرین \lr{.env} شامل \lr{APP\_IMAGE}، \lr{APP\_PORT}، \lr{REDIS\_IMAGE} و \lr{NGINX\_IMAGE} است.
 
 {۲. کلید \lr{env\_file} زیر یک سرویس.} محتوای این فایل‌ها به‌عنوان متغیر محیطی {داخل همان کانتینر} تزریق می‌شود و در فایل کامپوز قابل استفاده نیست. اینجا \lr{env/app.env} و \lr{env/redis.env} دقیقا همان چهار متغیر مورد نیاز برنامه‌ی جاوا را می‌دهند.
 
 نکات کاربردی:
 \begin{itemize}
-	\item ترتیب اولویت از کم به زیاد: مقدار پیش‌فرض در \lr{Dockerfile} (\lr{ENV}) $\rightarrow$ \lr{env\_file} $\rightarrow$ کلید \lr{environment} $\rightarrow$ متغیر پاس‌داده‌شده در خط فرمان.
-	\item چند \lr{env\_file} مجاز است و در تعارض، فایل بعدی برنده است؛ همین اجازه می‌دهد پیکربندی را موضوعی تفکیک کنیم (اینجا: تنظیمات برنامه و تنظیمات ردیس).
+	\item ترتیب اولویت از کم به زیاد: مقدار پیش‌فرض در \lr{Dockerfile} (\lr{ENV}) $\leftarrow$ \lr{env\_file} $\leftarrow$ کلید \lr{environment} $\leftarrow$ متغیر پاس‌داده‌شده در خط فرمان.
+	\item چند \lr{env\_file} مجاز است و در تعارض، فایل بعدی برنده است.
 	\item فایل \lr{env\_file} با \lr{shell} تفسیر نمی‌شود: نه بسط متغیر دارد، نه \lr{export} می‌خواهد و کوتیشن‌ها بخشی از مقدار محسوب می‌شوند.
 	\item مسیر \lr{.env} پیش‌فرض کنار فایل کامپوز است و با \lr{--env-file} قابل تعویض است؛ الگوی رایج داشتن \lr{.env.example} در مخزن و نگه داشتن \lr{.env} واقعی بیرون از گیت است.
 \end{itemize}
 
-\subsectionaddtolist{ز) انواع \lr{Network} در داکر}
+\subsubsection*{ انواع \lr{Network} در داکر}
 
 \begin{center}
 \begin{tabular}{|l|l|}
 \hline
 {درایور} & {توضیح} \\
 \hline
-\lr{bridge} & پیش‌فرض؛ شبکه‌ی خصوصی روی یک میزبان. شبکه‌ی \lr{bridge} کاربرساخته \lr{DNS} داخلی \\
+\lr{bridge} & شبکه‌ی خصوصی روی یک میزبان. شبکه‌ی \lr{bridge} کاربرساخته \lr{DNS} داخلی \\
  & دارد و کانتینرها با نام یکدیگر را می‌بینند (برخلاف \lr{bridge} پیش‌فرض). \\
 \hline
 \lr{host} & کانتینر مستقیما از \lr{network namespace} میزبان استفاده می‌کند؛ جداسازی شبکه ندارد \\

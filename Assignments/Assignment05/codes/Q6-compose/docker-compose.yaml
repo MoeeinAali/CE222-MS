@@ -1,0 +1,86 @@
+name: ${COMPOSE_PROJECT_NAME:-ms-hw5-compose}
+
+services:
+  redis:
+    image: ${REDIS_IMAGE}
+    container_name: hw5-redis
+    restart: unless-stopped
+    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+    volumes:
+      - redis-data:/data
+    networks:
+      - redis-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+  helper:
+    build:
+      context: ./helper
+      dockerfile: Dockerfile
+    image: ${HELPER_IMAGE}
+    container_name: hw5-helper
+    restart: unless-stopped
+    # no `ports:` - only reachable from inside helper-net (i.e. from nginx)
+    networks:
+      - helper-net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9090/helper').read()"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 3s
+
+  nginx:
+    image: ${NGINX_IMAGE}
+    container_name: hw5-nginx
+    restart: unless-stopped
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    # no `ports:` - the java app talks to it over edge-net on port 80
+    networks:
+      - edge-net
+      - helper-net
+    depends_on:
+      helper:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 3s
+
+  app:
+    image: ${APP_IMAGE}
+    container_name: hw5-composeprac
+    restart: unless-stopped
+    env_file:
+      - ./env/app.env      # STUDENTID, HELPER_BASE_URL
+      - ./env/redis.env    # REDIS_HOST, REDIS_PORT
+    ports:
+      - "${APP_PORT}:8080"
+    networks:
+      - edge-net
+      - redis-net
+    depends_on:
+      redis:
+        condition: service_healthy
+      nginx:
+        condition: service_healthy
+
+networks:
+  edge-net:
+    driver: bridge
+  redis-net:
+    driver: bridge
+    internal: true
+  helper-net:
+    driver: bridge
+    internal: true
+
+volumes:
+  redis-data:
