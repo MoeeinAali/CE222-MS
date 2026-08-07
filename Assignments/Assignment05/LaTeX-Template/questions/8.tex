@@ -1,6 +1,4 @@
-کد این بخش در \lr{solutions/Q8-nexus/} قرار دارد. کل پیکربندی به‌جای کلیک در رابط گرافیکی، از طریق \lr{REST API} نکسوس و در قالب اسکریپت انجام شده تا تکرارپذیر و قابل بازبینی باشد.
-
-\subsectionaddtolist{الف) بالا آوردن نکسوس}
+ کل پیکربندی به‌جای کلیک در رابط گرافیکی، از طریق \lr{REST API} نکسوس و در قالب اسکریپت انجام شده تا تکرارپذیر و قابل بازبینی باشد.
 
 \begin{lstlisting}[language=Yaml]
 services:
@@ -21,9 +19,7 @@ services:
       start_period: 60s
 \end{lstlisting}
 
-نکته: ایمیج \lr{sonatype/nexus3} تنها از نسخه‌ی \lr{3.78} به بعد \lr{arm64} منتشر می‌کند؛ تگ‌های قدیمی‌تر روی پردازنده‌های \lr{Apple Silicon} با شبیه‌سازی \lr{x86} اجرا می‌شوند که به‌شدت کند است.
-
-\subsectionaddtolist{ب) مراحل انجام‌شده}
+\subsubsection*{مراحل انجام‌شده:}
 
 \begin{enumerate}
 	\item {رمز اولیه}: نکسوس رمز تصادفی را در \lr{/nexus-data/admin.password} می‌گذارد؛ اسکریپت آن را می‌خواند و با یک درخواست \lr{PUT} تعویض می‌کند.
@@ -35,7 +31,7 @@ services:
 	\item {مخزن داکر}: \lr{docker-hosted} با \lr{connector} روی پورت ۸۰۸۲ و \lr{writePolicy: ALLOW}.
 \end{enumerate}
 
-\begin{lstlisting}[language=bash]
+\begin{lstlisting}[]
 create "pypi-proxy" /service/rest/v1/repositories/pypi/proxy '{
   "name": "pypi-proxy",
   "online": true,
@@ -52,18 +48,20 @@ create "pypi-proxy" /service/rest/v1/repositories/pypi/proxy '{
 \caption{خروجی \lr{setup-nexus.sh}؛ اسکریپت \lr{idempotent} است و اجرای دوباره‌اش چیزی را خراب نمی‌کند.}
 \end{figure}
 
-\subsectionaddtolist{ج) دریافت وابستگی‌ها از مخزن ساخته‌شده}
+\subsubsection*{دریافت وابستگی‌ها از مخزن ساخته‌شده:}
 
-پروژه‌ی سؤال ۴ برای این کار استفاده شد؛ چون همان‌جا سازوکار \lr{MIRROR\_URL} پیاده شده بود، تنها کاری که لازم بود دادن نشانی نکسوس به‌عنوان \lr{index} است:
+پروژه‌ی سؤال ۴ برای این کار استفاده شد؛ چون همان‌جا سازوکار \lr{MIRROR\_URL} پیاده شده بود، کافی بود نشانی نکسوس به‌عنوان \lr{index} داده شود و مرحله‌ی \lr{builder} همان‌جا هدف قرار بگیرد:
 
 \begin{lstlisting}[language=bash]
 docker build \
   --build-arg MIRROR_URL=http://host.docker.internal:8081/repository/pypi-proxy/simple \
   --build-arg MIRROR_TRUSTED_HOST=host.docker.internal:8081 \
-  --target deps -t linkshrink:from-nexus ../Q4-dockerize
+  --target builder -t q4-app:from-nexus ../Q4-dockerize
 \end{lstlisting}
 
-\subsectionaddtolist{د) پوش و پول ایمیج}
+نکته: چون مخزن نکسوس روی \lr{HTTP} ساده است (نه \lr{HTTPS})، بدون \lr{MIRROR\_TRUSTED\_HOST} خود \lr{pip} با پیغام «\lr{not a trusted or secure host}» نصب را رد می‌کند؛ به همین دلیل این آرگومان در Dockerfile سؤال ۴ به \lr{pip install --trusted-host} ترجمه می‌شود.
+
+\subsubsection*{ پوش و پول ایمیج}
 
 \begin{lstlisting}[language=bash]
 docker login localhost:8082 -u admin
@@ -81,19 +79,19 @@ docker pull localhost:8082/hw5/alpine:3.20      # pull it back from Nexus
 
 یک نکته‌ی عملی که در مسیر به آن برخوردیم: با تنظیم پیش‌فرض (\lr{forceBasicAuth: false}) دستور \lr{docker login} با خطای \lr{unsupported protocol scheme "null"} شکست می‌خورد. علتش این است که جریان \lr{bearer token} نشانی \lr{token endpoint} را از قابلیت \lr{Base URL} نکسوس می‌سازد که در نصب تازه خالی است و از طریق \lr{REST API} عمومی هم قابل تنظیم نیست. راه‌حل، یا تنظیم \lr{Base URL} در رابط گرافیکی است یا فعال کردن \lr{forceBasicAuth} روی مخزن تا رجیستری با \lr{HTTP Basic} احراز هویت کند؛ راه دوم انتخاب شد چون کاملا در اسکریپت قابل انجام است.
 
-\subsectionaddtolist{ه) نقش‌های نکسوس در یک پایپلاین \lr{CI/CD}}
+\subsubsection*{ نقش‌های نکسوس در یک پایپلاین \lr{CI/CD}}
 
 \begin{enumerate}
 	\item {کش و میرور وابستگی‌ها}: مخازن \lr{proxy} باعث می‌شوند بیلد به در دسترس بودن \lr{pypi.org} یا \lr{npmjs.com} وابسته نباشد. علاوه بر سرعت و کاهش ترافیک، در محیط‌هایی که دسترسی به اینترنت محدود یا فیلتر است، عملا تنها راه ادامه‌ی کار همین است.
 	\item {مخزن \lr{artifact}های خودی}: خروجی بیلد (\lr{jar}، \lr{wheel}، پکیج \lr{npm} داخلی) در مخازن \lr{hosted} منتشر می‌شود و سرویس‌های دیگر با شماره‌ی نسخه آن را مصرف می‌کنند.
 	\item {رجیستری ایمیج}: همان نقشی که در این تمرین دیدیم؛ نقطه‌ی تحویل بین \lr{CI} و \lr{CD}.
 	\item {تفکیک نسخه‌های ناپایدار از پایدار}: جدا کردن \lr{snapshot} و \lr{release} در دو مخزن و اجازه‌ی \lr{promote} از اولی به دومی، به‌جای بیلد دوباره.
-	\item {کنترل دسترسی و ممیزی}: نقش و کاربر جداگانه برای \lr{CI} (فقط خواندن از \lr{proxy}ها و نوشتن در \lr{hosted})، به‌همراه لاگ اینکه چه کسی چه چیزی را چه زمانی منتشر کرده است.
+	\item {کنترل دسترسی}: نقش و کاربر جداگانه برای \lr{CI} (فقط خواندن از \lr{proxy}ها و نوشتن در \lr{hosted})، به‌همراه لاگ اینکه چه کسی چه چیزی را چه زمانی منتشر کرده است.
 	\item {تکرارپذیری و امنیت زنجیره‌ی تأمین}: چون \lr{artifact} کش‌شده در نکسوس می‌ماند، حتی اگر نسخه‌ای از مخزن عمومی حذف شود بیلدهای قدیمی همچنان قابل بازتولیدند. همچنین می‌توان با قواعد \lr{Content Selector} و \lr{Routing Rule} جلوی ورود بسته‌های خاص یا آسیب‌پذیر را گرفت.
 	\item {مدیریت چرخه‌ی عمر}: سیاست‌های \lr{cleanup} برای حذف خودکار \lr{snapshot}های قدیمی و ایمیج‌های بدون استفاده تا فضای دیسک کنترل شود.
 \end{enumerate}
 
-\subsectionaddtolist{و) کاربرد مخزن نوع \lr{Group}}
+\subsubsection*{کاربرد مخزن نوع \lr{Group}}
 
 مخزن \lr{Group} خودش چیزی ذخیره نمی‌کند؛ چند مخزن {هم‌فرمت} را زیر {یک نشانی واحد} جمع می‌کند و درخواست را به‌ترتیب تعریف‌شده بین اعضا جست‌وجو می‌کند و اولین پاسخ را برمی‌گرداند.
 

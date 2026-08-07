@@ -6,12 +6,15 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
 ARG MIRROR_URL=""
+ARG MIRROR_TRUSTED_HOST=""
 
 COPY requirements.txt .
 
 RUN --mount=type=cache,target=/root/.cache/pip \
     if [ -n "$MIRROR_URL" ]; then \
-        pip install --prefix=/install -i "$MIRROR_URL" -r requirements.txt; \
+        pip install --prefix=/install -i "$MIRROR_URL" \
+            ${MIRROR_TRUSTED_HOST:+--trusted-host "$MIRROR_TRUSTED_HOST"} \
+            -r requirements.txt; \
     else \
         pip install --prefix=/install -r requirements.txt; \
     fi
@@ -28,7 +31,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
 
 COPY --from=builder /install /install
-COPY main.py .
+COPY . .
 
 RUN chown -R appuser:appgroup /app
 

@@ -15,6 +15,9 @@
     \item \textbf{\lr{ARG MIRROR\_URL=""}:}
     تعریف یک متغیر مخصوص زمان \lr{build} برای تغییر منبع دانلود بسته‌ها.
 
+    \item \textbf{\lr{ARG MIRROR\_TRUSTED\_HOST=""}:}
+    وقتی میرور فقط روی \lr{HTTP} در دسترس است (مثلاً یک مخزن داخلی مثل \lr{Nexus} در سؤال ۸)، این مقدار به \lr{pip install --trusted-host} داده می‌شود تا نصب به‌خاطر نبود \lr{HTTPS} رد نشود.
+
     \item \textbf{\lr{RUN --mount=type=cache,target=/root/.cache/pip}:}
     استفاده از قابلیت \lr{BuildKit Cache Mount} برای کش کردن بسته‌های دانلودشده توسط \lr{pip} و کاهش زمان بیلدهای بعدی.
 

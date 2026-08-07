@@ -1,0 +1,28 @@
+name: ms-hw5-nexus
+
+services:
+  nexus:
+    image: sonatype/nexus3:3.79.1
+    container_name: hw5-nexus
+    restart: unless-stopped
+    environment:
+      # Nexus sizes its heap from these; the defaults assume a dedicated host
+      INSTALL4J_ADD_VM_PARAMS: "-Xms1g -Xmx2g -XX:MaxDirectMemorySize=2g -Djava.util.prefs.userRoot=/nexus-data/javaprefs"
+    ports:
+      - "8081:8081"   # UI + REST API + the pypi/npm/maven repository endpoints
+      - "8082:8082"   # HTTP connector of the hosted docker registry
+    volumes:
+      - nexus-data:/nexus-data
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    healthcheck:
+      test: ["CMD", "sh", "-c", "curl -sf http://localhost:8081/service/rest/v1/status || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 40
+      start_period: 60s
+
+volumes:
+  nexus-data:
