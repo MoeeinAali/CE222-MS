@@ -1,0 +1,7 @@
+# generated / regenerable
+node_modules/
+dist/
+.ci/
+__pycache__/
+*.py[cod]
+.pytest_cache/
