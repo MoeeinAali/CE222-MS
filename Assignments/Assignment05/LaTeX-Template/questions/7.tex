@@ -1,15 +1,10 @@
-کد این بخش در \lr{solutions/Q7-pipeline/} قرار دارد.
+یک سرویس \lr{HTTP} به زبان \lr{Go 1.23} با دو API \lr{GET /health} و \lr{POST /v1/analyze} (آمار واژگان یک متن) نوشته شد؛ ۱۵ تست واحد با پوشش ۷۰ درصدی کل و ۱۰۰ درصدی بسته‌ی منطق دامنه. تنها وابستگی بیرونی \lr{github.com/google/uuid} است تا مرحله‌ی \lr{install} کار واقعی داشته باشد. سرویس \lr{graceful shutdown} دارد و شماره‌ی نسخه‌اش در زمان بیلد با \lr{-ldflags} روی باینری حک می‌شود؛ همین باعث می‌شود در مرحله‌ی \lr{deploy} بتوان تأیید کرد که دقیقا همان \lr{artifact} این پایپلاین اجرا شده است.
 
-\subsectionaddtolist{الف) پروژه‌ی پایه}
-
-یک سرویس \lr{HTTP} به زبان \lr{Go 1.23} با دو نقطه‌ی انتهایی \lr{GET /health} و \lr{POST /v1/analyze} (آمار واژگان یک متن) نوشته شد؛ ۱۵ تست واحد با پوشش ۷۰٫۵ درصدی کل و ۱۰۰ درصدی بسته‌ی منطق دامنه. تنها وابستگی بیرونی \lr{github.com/google/uuid} است تا مرحله‌ی \lr{install} کار واقعی داشته باشد. سرویس \lr{graceful shutdown} دارد و شماره‌ی نسخه‌اش در زمان بیلد با \lr{-ldflags} روی باینری حک می‌شود؛ همین باعث می‌شود در مرحله‌ی \lr{deploy} بتوان تأیید کرد که دقیقا همان \lr{artifact} این پایپلاین اجرا شده است.
-
-\subsectionaddtolist{ب) مدل اجرای رانر}
 
 چون \lr{GitLab Runner} نداریم، اسکریپت \lr{runner.bash} نقش آن را بازی می‌کند. هر جاب دقیقا مثل \lr{docker executor} در یک کانتینر یک‌بارمصرف اجرا می‌شود:
 
 \begin{lstlisting}[language=bash]
-in_docker() {                     # one `script:` block of a GitLab job
+in_docker() {
     local image="$1"; shift
     docker run --rm \
         -v "$WORKSPACE:/src" \
@@ -22,8 +17,6 @@ in_docker() {                     # one `script:` block of a GitLab job
 \end{lstlisting}
 
 دو جابی که باید خود \lr{daemon} را صدا بزنند (\lr{build} و \lr{deploy}) نسخه‌ی دومی از همین تابع را استفاده می‌کنند که \lr{/var/run/docker.sock} را هم \lr{mount} می‌کند — همان الگویی که رانرهای واقعی برای ساخت ایمیج به‌کار می‌برند.
-
-\subsectionaddtolist{ج) جاب‌ها}
 
 \begin{center}
 \begin{tabular}{|l|l|l|}
@@ -44,9 +37,9 @@ in_docker() {                     # one `script:` block of a GitLab job
 \end{tabular}
 \end{center}
 
-\lr{deploy} به این صورت ماک است که یک شبکه‌ی موقت می‌سازد، ایمیج همین پایپلاین را روی آن بالا می‌آورد، از یک کانتینر {دیگر} روی همان شبکه \lr{/health} و \lr{/v1/analyze} را صدا می‌زند و در پایان — چه موفق و چه ناموفق — با یک \lr{trap} محیط را آزاد می‌کند. یعنی چیزی واقعا اجرا و آزموده می‌شود، ولی هیچ محیط پایداری درگیر نمی‌شود.
+\lr{deploy} به این صورت ماک است که یک شبکه‌ی موقت می‌سازد، ایمیج همین پایپلاین را روی آن بالا می‌آورد، از یک کانتینر {دیگر} روی همان شبکه \lr{/health} و \lr{/v1/analyze} را صدا می‌زند و در پایان چه موفق و چه ناموفق با یک \lr{trap} محیط را آزاد می‌کند. یعنی چیزی واقعا اجرا و آزموده می‌شود، ولی هیچ محیط پایداری درگیر نمی‌شود.
 
-\subsectionaddtolist{د) امکاناتی که از \lr{GitLab CI} تقلید شده‌اند}
+ امکاناتی که از \lr{GitLab CI} تقلید شده‌اند:
 
 \begin{itemize}
 	\item {کش}: دو \lr{volume} به نام‌های \lr{q7-go-mod-cache} و \lr{q7-go-build-cache} بین اجراها باقی می‌مانند (معادل \lr{cache:}).
@@ -57,11 +50,7 @@ in_docker() {                     # one `script:` block of a GitLab job
 	\item {اجرای گزینشی}: \lr{./runner.bash lint test} فقط همان جاب‌ها را اجرا می‌کند.
 \end{itemize}
 
-\subsectionaddtolist{ه) یک نکته‌ی مهم در \lr{bash}}
-
-در نسخه‌ی اول، جاب \lr{build} با وجود شکست \lr{docker build} سبز گزارش می‌شد. علت این است که \lr{set -e} در بدنه‌ی تابعی که به‌عنوان {شرط \lr{if}} اجرا می‌شود موقتا غیرفعال می‌گردد؛ بنابراین دستور شکست‌خورده‌ی وسط تابع، اجرا را متوقف نمی‌کرد و مقدار بازگشتی تابع، وضعیت {آخرین} دستور بود. راه‌حل، افزودن \lr{|| return 1} صریح به انتهای هر گام است. این دقیقا همان دسته خطاهایی است که یک پایپلاین را سبز دروغین می‌کند و به همین دلیل، خود سناریوهای شکست هم باید آزموده شوند.
-
-\subsectionaddtolist{و) نتیجه‌ی اجرا — حالت موفق}
+ نتیجه‌ی اجرا در حالت موفق:
 
 \begin{figure}[H]
 \centering
@@ -69,7 +58,7 @@ in_docker() {                     # one `script:` block of a GitLab job
 \caption{اجرای کامل \lr{./runner.bash}؛ همه‌ی پنج جاب سبز و کد خروج صفر.}
 \end{figure}
 
-\subsectionaddtolist{ز) نتیجه‌ی اجرا — حالت شکست هر مرحله}
+نتیجه‌ی اجرا در حالت شکست:
 
 برای اینکه نشان دهیم هر دروازه واقعا مسدود می‌کند، اسکریپت \lr{demo-failure.bash} پروژه را در یک پوشه‌ی موقت کپی می‌کند، یک نقص {واقعی} تزریق می‌کند و پایپلاین را روی همان کپی اجرا می‌کند (سورس اصلی دست‌نخورده می‌ماند):
 

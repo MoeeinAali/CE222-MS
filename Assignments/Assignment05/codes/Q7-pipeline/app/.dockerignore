@@ -1,0 +1,6 @@
+.git
+.ci
+dist
+*.out
+Dockerfile
+.dockerignore

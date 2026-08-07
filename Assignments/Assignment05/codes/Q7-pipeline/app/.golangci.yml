@@ -1,0 +1,20 @@
+run:
+  timeout: 3m
+  tests: true
+
+linters:
+  enable:
+    - errcheck      # unchecked errors
+    - govet
+    - ineffassign   # assignments that are never used
+    - staticcheck
+    - unused
+    - gofmt
+    - goimports
+    - misspell
+    - revive        # style / naming
+    - bodyclose
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
